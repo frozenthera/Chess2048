@@ -2,13 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum CheckerStateEnum
-{
-    BLACK,
-    WHITE,
-    EMPTY
-}
-
 public enum PieceEnum
 {
     PAWN,
@@ -16,18 +9,35 @@ public enum PieceEnum
     KNIGHT,
     BISHOP,
     QUEEN,
-    KING,
-    EMPTY
+    KING
 }
 
 public class Checker : MonoBehaviour
 {
-    public CheckerStateEnum curCheckerPlayer { get; set; }
+    public PlayerEnum curCheckerPlayer;
     public Coordinate coord { get; set; }
-    public Piece curPiece {get; set; }
+    public Piece curPiece;
+    
+    /// <summary>
+    /// Use only when dest is empty
+    /// </summary>
+    /// <param name="dest"></param>
+    public void MovePiece(Checker dest)
+    {
+        curPiece.transform.position = dest.transform.position;
+
+        dest.curCheckerPlayer = curCheckerPlayer;
+        dest.curPiece = curPiece;
+
+        curCheckerPlayer = PlayerEnum.EMPTY;
+        curPiece = null;
+    }
+
 
     public void OnMouseDown()
     {
+        if(curCheckerPlayer != PlayerEnum.EMPTY) return;
+
         Spawn(PieceEnum.PAWN);
     }
 
@@ -36,5 +46,7 @@ public class Checker : MonoBehaviour
         GameObject go = GameManager.Inst.GetObjectByPieceEnum(pieceEnum);
         curPiece = Instantiate(go, transform.position, Quaternion.identity).GetComponent<Piece>();
 
+        curCheckerPlayer = GameManager.Inst.player;
+        curPiece.Initialize(GameManager.Inst.player);
     }
 }

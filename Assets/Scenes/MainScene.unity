@@ -451,6 +451,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   piecePrefabs:
   - {fileID: 6598423723354193570, guid: 5152b8b505953b243a6ada22e206b27a, type: 3}
+  - {fileID: 6598423723354193570, guid: bb7c594d4f447e040b44bf7f23446a12, type: 3}
+  - {fileID: 6598423723354193570, guid: cc3dc2e9d4ab56b4092d42717c053e2d, type: 3}
+  - {fileID: 6598423723354193570, guid: 6c129f81d614e754ca64dd85317c65c2, type: 3}
+  - {fileID: 6598423723354193570, guid: 9684766bfb13263498faeb04850cb10f, type: 3}
+  - {fileID: 6598423723354193570, guid: 1b6a6401100605e488f45cdca74aedf7, type: 3}
+  player: 0
 --- !u!4 &1860876384
 Transform:
   m_ObjectHideFlags: 0

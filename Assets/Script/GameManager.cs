@@ -4,10 +4,16 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    //FIXME_Later move to Singleton<>
     public static GameManager Inst;
+
+
     [SerializeField] private List<GameObject> piecePrefabs = new();
     private Dictionary<PieceEnum, GameObject> pieceDict = new();
 
+    public PlayerEnum player = PlayerEnum.WHITE;
+
+    //FIXME
     private void Awake()
     {
         Inst = this;
@@ -23,7 +29,6 @@ public class GameManager : MonoBehaviour
 
     public GameObject GetObjectByPieceEnum(PieceEnum pieceEnum)
     {
-        if(pieceEnum == PieceEnum.EMPTY) return null;
         return pieceDict[pieceEnum];
     }
 
