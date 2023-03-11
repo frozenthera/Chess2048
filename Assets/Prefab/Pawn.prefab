@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 46519747084778021}
   - component: {fileID: 7127532161960809198}
   - component: {fileID: 209556325730052958}
+  - component: {fileID: 7422715721560745882}
   m_Layer: 0
   m_Name: Pawn
   m_TagString: Untagged
@@ -102,3 +103,29 @@ MonoBehaviour:
   spriteList:
   - {fileID: 1340600614, guid: 8f2332b8190add948881518a600eded2, type: 3}
   - {fileID: 1010873088, guid: 8f2332b8190add948881518a600eded2, type: 3}
+--- !u!61 &7422715721560745882
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6598423723354193570}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 0.88888884, y: 0.89}
+    newSize: {x: 0.88888884, y: 0.89}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 0.88888884, y: 0.89}
+  m_EdgeRadius: 0

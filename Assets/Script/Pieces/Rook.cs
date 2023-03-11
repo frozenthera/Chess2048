@@ -4,8 +4,17 @@ using UnityEngine;
 
 public class Rook : Piece
 {
-    public override Coordinate[] ReachableCoordinate()
+
+    protected override void _Initianlize()
     {
-        return null;
+        diff = new List<Coordinate>()
+        {
+            new Coordinate(0,1),
+            new Coordinate(1,0),
+            new Coordinate(0,-1),
+            new Coordinate(-1,0)
+        };
+
+        range = 3;
     }
 }

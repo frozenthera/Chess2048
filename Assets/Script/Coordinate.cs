@@ -18,8 +18,13 @@ public class Coordinate
         return new Coordinate(p1.X + p2.X, p1.Y + p2.Y);
     }
 
-    public static Coordinate operator -(Coordinate p1, Coordinate p2)
+    public static Coordinate operator-(Coordinate p1, Coordinate p2)
     {
         return new Coordinate(p1.X - p2.X, p1.Y - p2.Y);
+    }
+
+    public static Coordinate operator*(Coordinate p1, int num)
+    {
+        return new Coordinate(p1.X*num, p1.Y*num);
     }
 }

@@ -9,8 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 46519747084778021}
+  - component: {fileID: 2781995436891774193}
   - component: {fileID: 7127532161960809198}
-  - component: {fileID: 209556325730052958}
+  - component: {fileID: 3928198246296476688}
   m_Layer: 0
   m_Name: Bishop
   m_TagString: Untagged
@@ -33,6 +34,25 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2781995436891774193
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6598423723354193570}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cdff614889dd4504d8e4e09ca58af577, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pieceClass: 3
+  player: 0
+  spriteList:
+  - {fileID: -1113145346, guid: 8f2332b8190add948881518a600eded2, type: 3}
+  - {fileID: 2133200603, guid: 8f2332b8190add948881518a600eded2, type: 3}
+  dx: 
+  dy: 
 --- !u!212 &7127532161960809198
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -85,20 +105,29 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &209556325730052958
-MonoBehaviour:
+--- !u!61 &3928198246296476688
+BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6598423723354193570}
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2a6bac97a3b85a04899f261c5d6694f7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  pieceClass: 3
-  player: 0
-  spriteList:
-  - {fileID: -1113145346, guid: 8f2332b8190add948881518a600eded2, type: 3}
-  - {fileID: 2133200603, guid: 8f2332b8190add948881518a600eded2, type: 3}
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 0.88888884, y: 0.89}
+    newSize: {x: 0.88888884, y: 0.89}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 0.88888884, y: 0.89}
+  m_EdgeRadius: 0

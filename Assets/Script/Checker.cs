@@ -2,22 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum PieceEnum
-{
-    PAWN,
-    ROOK,
-    KNIGHT,
-    BISHOP,
-    QUEEN,
-    KING
-}
-
 public class Checker : MonoBehaviour
 {
     public PlayerEnum curCheckerPlayer;
     public Coordinate coord { get; set; }
     public Piece curPiece;
+    private SpriteRenderer sp;
     
+    private void Start()
+    {
+        sp = GetComponent<SpriteRenderer>();
+    }
+
     /// <summary>
     /// Use only when dest is empty
     /// </summary>
@@ -27,6 +23,7 @@ public class Checker : MonoBehaviour
         if(dest == this) return;
 
         curPiece.transform.position = dest.transform.position;
+        curPiece.curCoord = dest.coord;
 
         dest.curCheckerPlayer = curCheckerPlayer;
         dest.curPiece = curPiece;
@@ -53,9 +50,15 @@ public class Checker : MonoBehaviour
     private void Spawn(PieceEnum pieceEnum)
     {
         GameObject go = GameManager.Inst.GetObjectByPieceEnum(pieceEnum);
-        curPiece = Instantiate(go, transform.position, Quaternion.identity).GetComponent<Piece>();
+        curPiece = Instantiate(go, transform.position, Quaternion.identity, transform.parent).GetComponent<Piece>();
 
         curCheckerPlayer = GameManager.Inst.player;
+        curPiece.curCoord = coord;
         curPiece.Initialize(GameManager.Inst.player);
+    }
+
+    public void Paint(Color color)
+    {
+        sp.color = color;
     }
 }

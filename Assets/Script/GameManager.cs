@@ -11,11 +11,16 @@ public class GameManager : MonoBehaviour
     private Dictionary<PieceEnum, GameObject> pieceDict = new();
 
     public PlayerEnum player = PlayerEnum.WHITE;
+    public Checker[,] boardState;
+    
+    public bool isHighlighted = false;
+    public Piece curSelected = null;
 
     //FIXME
     private void Awake()
     {
         Inst = this;
+        boardState = new Checker[4,4];
     }
 
     private void Start()
@@ -36,5 +41,15 @@ public class GameManager : MonoBehaviour
         if(player == PlayerEnum.WHITE) 
             player = PlayerEnum.BLACK;
         else player = PlayerEnum.WHITE;
+    }
+
+    public bool isTherePieceWithOppo(Coordinate coord, PlayerEnum compare)
+    {
+        return boardState[coord.X, coord.Y].curCheckerPlayer != compare && boardState[coord.X, coord.Y].curCheckerPlayer != PlayerEnum.EMPTY; 
+    }
+
+    public bool isTherePiece(Coordinate coord)
+    {
+        return boardState[coord.X, coord.Y].curCheckerPlayer != PlayerEnum.EMPTY;
     }
 }

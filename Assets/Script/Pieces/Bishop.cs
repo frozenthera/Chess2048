@@ -4,8 +4,16 @@ using UnityEngine;
 
 public class Bishop : Piece
 {
-    public override Coordinate[] ReachableCoordinate()
+    protected override void _Initianlize()
     {
-        return null;
+        diff = new List<Coordinate>()
+        {
+            new Coordinate(1,1),
+            new Coordinate(1,-1),
+            new Coordinate(-1,-1),
+            new Coordinate(-1,1)
+        };
+
+        range = 3;
     }
 }
