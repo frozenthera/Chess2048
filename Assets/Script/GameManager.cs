@@ -7,7 +7,6 @@ public class GameManager : MonoBehaviour
     //FIXME_Later move to Singleton<>
     public static GameManager Inst;
 
-
     [SerializeField] private List<GameObject> piecePrefabs = new();
     private Dictionary<PieceEnum, GameObject> pieceDict = new();
 
@@ -32,4 +31,10 @@ public class GameManager : MonoBehaviour
         return pieceDict[pieceEnum];
     }
 
+    public void SwapTurn()
+    {
+        if(player == PlayerEnum.WHITE) 
+            player = PlayerEnum.BLACK;
+        else player = PlayerEnum.WHITE;
+    }
 }

@@ -62,7 +62,7 @@ public class Board : MonoBehaviour
 
                 if((i+j) % 2 == 0)
                 {
-                    boardState[i,j].GetComponent<SpriteRenderer>().color = Color.black;
+                    boardState[i,j].GetComponent<SpriteRenderer>().color = new Color(60/255f,60/255f,60/255f);
                 }   
             }
         }
@@ -70,16 +70,12 @@ public class Board : MonoBehaviour
         transform.position = new Vector3(-1.5f, -1.5f, 0);
     }
 
-
     int[] dx = new int[]{0, 1, 0, -1};
     int[] dy = new int[]{-1, 0, 1, 0};
     public void Slide(Direction dir)
     {
-        Debug.Log("!");
         int _dx = dx[(int)dir];
         int _dy = dy[(int)dir];
-
-        bool isHappened = false;
 
         for(int i= _dx < 0 ? 0 : 3; _dx < 0 ? i<4 : i>-1 ; i -= _dx != 0 ? _dx : 1)
         {
@@ -89,34 +85,34 @@ public class Board : MonoBehaviour
 
                 if(boardState[i,j].curCheckerPlayer == PlayerEnum.EMPTY) continue;
                 
-                if(boardState[i+_dx, j+_dy].curPiece == null)
+                int temp = 1;
+                while(i+_dx*temp > -1 && i+_dx*temp < 4 && j+_dy*temp > -1 && j+_dy*temp <4 && boardState[i+_dx*temp, j+_dy*temp].curPiece == null)
                 {
-                    boardState[i,j].MovePiece(boardState[i+_dx, j+_dy]);
-                    isHappened = true;
-                    continue;
+                    temp++;
                 }
+                boardState[i,j].MovePiece(boardState[i+_dx*(temp-1), j+_dy*(temp-1)]);
                 
-                if(boardState[i+_dx, j+_dy].curPiece.pieceClass != boardState[i,j].curPiece.pieceClass) continue;
+                int changedX = i+_dx*(temp-1);
+                int changedY = j+_dy*(temp-1);
 
-                if(boardState[i+_dx, j+_dy].curCheckerPlayer == boardState[i,j].curCheckerPlayer)
+                if(changedX+_dx < 0 || changedX+_dx > 3 || changedY+_dy < 0 || changedY+_dy > 3) continue;
+                if(boardState[changedX+_dx, changedY+_dy].curPiece.pieceClass != boardState[changedX, changedY].curPiece.pieceClass) continue;
+
+                if(boardState[changedX+_dx, changedY+_dy].curCheckerPlayer == boardState[changedX, changedY].curCheckerPlayer)
                 {
-                    boardState[i+_dx, j+_dy].curPiece = Merge(boardState[i+_dx, j+_dy].curPiece, boardState[i,j].curPiece);
+                    boardState[changedX+_dx, changedY+_dy].curPiece = Merge(boardState[changedX+_dx, changedY+_dy].curPiece, boardState[changedX, changedY].curPiece);
 
-                    boardState[i,j].curPiece = null;
-                    boardState[i,j].curCheckerPlayer = PlayerEnum.EMPTY;
-
-                    isHappened = true;
+                    boardState[changedX, changedY].curPiece = null;
+                    boardState[changedX, changedY].curCheckerPlayer = PlayerEnum.EMPTY;
                 }
                 else
                 {
                     //shoud destroy lower one
-                    
+                    boardState[changedX+_dx, changedY+_dy].RemovePiece();
+                    boardState[changedX, changedY].MovePiece(boardState[changedX+_dx, changedY+_dy]);
                 }
-                
             }
         }
-
-        if(isHappened) Slide(dir);
     }
 
     /// <summary>

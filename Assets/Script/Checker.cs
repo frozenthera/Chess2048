@@ -24,11 +24,20 @@ public class Checker : MonoBehaviour
     /// <param name="dest"></param>
     public void MovePiece(Checker dest)
     {
+        if(dest == this) return;
+
         curPiece.transform.position = dest.transform.position;
 
         dest.curCheckerPlayer = curCheckerPlayer;
         dest.curPiece = curPiece;
 
+        curCheckerPlayer = PlayerEnum.EMPTY;
+        curPiece = null;
+    }
+
+    public void RemovePiece()
+    {
+        Destroy(curPiece.gameObject);
         curCheckerPlayer = PlayerEnum.EMPTY;
         curPiece = null;
     }
