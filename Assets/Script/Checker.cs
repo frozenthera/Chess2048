@@ -41,7 +41,7 @@ public class Checker : MonoBehaviour
 
     public void OnMouseDown()
     {
-        if(GameManager.Inst.PlayerActed) return;
+        if(GameManager.Inst.PlayerActed || GameManager.Inst.isGameOver) return;
 
         if(GameManager.Inst.curSelected != null)
         {
@@ -91,7 +91,7 @@ public class Checker : MonoBehaviour
     private void Spawn(PieceEnum pieceEnum)
     {
         GameObject go = GameManager.Inst.GetObjectByPieceEnum(pieceEnum);
-        curPiece = Instantiate(go, transform.position, Quaternion.identity, transform.parent).GetComponent<Piece>();
+        curPiece = Instantiate(go, transform.position, Quaternion.identity, GameManager.Inst.Pieces).GetComponent<Piece>();
 
         curCheckerPlayer = GameManager.Inst.player;
         curPiece.curCoord = coord;

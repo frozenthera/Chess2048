@@ -11,10 +11,10 @@ public class Knight : Piece
             new Coordinate(1,2),
             new Coordinate(2,1),
             new Coordinate(2,-1),
-            new Coordinate(1,-1),
-            new Coordinate(-1,-2),
+            new Coordinate(1,-2),
             new Coordinate(-1,-2),
             new Coordinate(-2,-1),
+            new Coordinate(-2,1),
             new Coordinate(-1,2)
         };
 

@@ -14,18 +14,27 @@ public class UIManager : MonoBehaviour
     }
 
     [SerializeField] Button turnEndButton;
-    [SerializeField] TextMeshProUGUI turnPlayerInfoText;
+    [SerializeField] public TextMeshProUGUI turnPlayerInfoText;
     [SerializeField] List<Sprite> whiteSpriteList = new();
     [SerializeField] List<Sprite> blackSpriteList = new();
 
     [SerializeField] Image whiteNextSprite;
     [SerializeField] Image blackNextSprite;
+
+    [SerializeField] TextMeshProUGUI winText;
+    [SerializeField] Button gameRestartButton;
+    [SerializeField] RectTransform ResultPanel;
     private void Start()
     {
-        turnPlayerInfoText.text = "Current Player\n: " + GameManager.Inst.player.ToString();
+        UpdateTurnEndButton();
         turnEndButton.onClick.AddListener(()=>{
             GameManager.Inst.SwapTurn();
-            turnPlayerInfoText.text = "Current Player\n: " + GameManager.Inst.player.ToString();
+            UpdateTurnEndButton();
+        });
+
+        gameRestartButton.onClick.AddListener(()=>{
+            GameManager.Inst.ResetGame();
+            ResultPanel.gameObject.SetActive(false);
         });
     }
 
@@ -44,7 +53,40 @@ public class UIManager : MonoBehaviour
 
     public void UpdateNextPiece()
     {
-        whiteNextSprite.sprite = whiteSpriteList[(int)GameManager.Inst.spawnList[GameManager.Inst.WHITE_Idx]];
-        blackNextSprite.sprite = blackSpriteList[(int)GameManager.Inst.spawnList[GameManager.Inst.BLACK_Idx]];
+        if(GameManager.Inst.WHITE_Idx > 15)
+        {
+            whiteNextSprite.sprite = null;
+        }
+        else
+        {
+            whiteNextSprite.sprite = whiteSpriteList[(int)GameManager.Inst.spawnList[GameManager.Inst.WHITE_Idx]];
+        }
+
+        if(GameManager.Inst.BLACK_Idx > 15)
+        {
+            blackNextSprite.sprite = null;
+        }
+        else
+        {
+            blackNextSprite.sprite = blackSpriteList[(int)GameManager.Inst.spawnList[GameManager.Inst.BLACK_Idx]];
+        }        
+    }
+
+    public void UpdateTurnEndButton()
+    {
+        turnPlayerInfoText.text = "Current Player\n" + GameManager.Inst.player.ToString();
+    }
+
+    public void SetResultPanel(PlayerEnum winner)
+    {
+        ResultPanel.gameObject.SetActive(true);
+        winText.text = $"{winner.ToString()} WINS!!";
+    }
+
+    public void ResetUI()
+    {
+        UpdateTurnEndButton();
+        SetTurnEndButton(false);
+        UpdateNextPiece();
     }
 }

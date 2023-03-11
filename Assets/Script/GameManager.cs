@@ -26,6 +26,12 @@ public class GameManager : MonoBehaviour
     public Piece curSelected = null;
     public List<Coordinate> curMovable;
     public List<PieceEnum> spawnList;
+
+    [SerializeField] private Transform pieces;
+    public Transform Pieces => pieces;
+
+    public bool isGameOver = false;
+
     //FIXME
     private void Awake()
     {
@@ -55,7 +61,7 @@ public class GameManager : MonoBehaviour
 
         PlayerActed = false;
         UIManager.Inst.SetTurnEndButton(false);
-
+        
         for(int i=0; i<4; i++)
         {
             for(int j=0; j<4; j++)
@@ -79,7 +85,33 @@ public class GameManager : MonoBehaviour
 
     public void GameOver(PlayerEnum winner)
     {
+        isGameOver = true;
         Debug.Log($"{winner.ToString()} WINS!!");
+        UIManager.Inst.SetResultPanel(winner);
     }
 
+    public void ResetGame()
+    {
+        curSelected = null;
+        curMovable = null;
+        WHITE_Idx = 0;
+        BLACK_Idx = 0;
+        PlayerActed = false;
+        player = PlayerEnum.WHITE;
+        for(int i=0; i<4; i++)
+        {
+            for(int j=0; j<4; j++)
+            {
+                boardState[i,j].curCheckerPlayer = PlayerEnum.EMPTY;
+                boardState[i,j].curPiece = null;
+            }
+        }
+        foreach(var item in Pieces.GetComponentsInChildren<Transform>())
+        {
+            if(item == Pieces) continue;
+            Destroy(item.gameObject);
+        }
+        UIManager.Inst.ResetUI();
+        isGameOver = false;
+    }
 }
