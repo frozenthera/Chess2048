@@ -12,10 +12,20 @@ public class GameManager : MonoBehaviour
 
     public PlayerEnum player = PlayerEnum.WHITE;
     public Checker[,] boardState;
-    
-    public bool isHighlighted = false;
-    public Piece curSelected = null;
 
+    public int WHITE_Idx = 0;
+    public int BLACK_Idx = 0;
+
+    public bool PlayerActed = false;
+
+    public bool isHighlighted
+    {
+        get => curSelected != null;
+    }
+
+    public Piece curSelected = null;
+    public List<Coordinate> curMovable;
+    public List<PieceEnum> spawnList;
     //FIXME
     private void Awake()
     {
@@ -33,6 +43,7 @@ public class GameManager : MonoBehaviour
 
     public GameObject GetObjectByPieceEnum(PieceEnum pieceEnum)
     {
+        if(pieceEnum == PieceEnum.NULL) return null;
         return pieceDict[pieceEnum];
     }
 
@@ -41,6 +52,19 @@ public class GameManager : MonoBehaviour
         if(player == PlayerEnum.WHITE) 
             player = PlayerEnum.BLACK;
         else player = PlayerEnum.WHITE;
+
+        PlayerActed = false;
+        UIManager.Inst.SetTurnEndButton(false);
+
+        for(int i=0; i<4; i++)
+        {
+            for(int j=0; j<4; j++)
+            {
+                if(boardState[i,j].curCheckerPlayer == PlayerEnum.EMPTY) continue;
+                else if(boardState[i,j].curCheckerPlayer == player) boardState[i,j].curPiece.GetComponent<BoxCollider2D>().enabled = true;
+                else boardState[i,j].curPiece.GetComponent<BoxCollider2D>().enabled = false;
+            }
+        }
     }
 
     public bool isTherePieceWithOppo(Coordinate coord, PlayerEnum compare)
@@ -52,4 +76,10 @@ public class GameManager : MonoBehaviour
     {
         return boardState[coord.X, coord.Y].curCheckerPlayer != PlayerEnum.EMPTY;
     }
+
+    public void GameOver(PlayerEnum winner)
+    {
+        Debug.Log($"{winner.ToString()} WINS!!");
+    }
+
 }

@@ -21,25 +21,34 @@ public class Board : MonoBehaviour
 
     private void Update()
     {
-        if(Input.GetKeyDown(KeyCode.DownArrow))
+        if(GameManager.Inst.PlayerActed) return;
+        if(Input.GetKeyDown(KeyCode.S))
         {
             Debug.Log("Slide Down!");
             Slide(Direction.DOWN);
+            GameManager.Inst.PlayerActed = true;
+            UIManager.Inst.SetTurnEndButton(true);
         }
-        if(Input.GetKeyDown(KeyCode.RightArrow))
+        else if(Input.GetKeyDown(KeyCode.D))
         {
             Debug.Log("Slide Right!");
             Slide(Direction.RIGHT);
+            GameManager.Inst.PlayerActed = true;
+            UIManager.Inst.SetTurnEndButton(true);
         }
-        if(Input.GetKeyDown(KeyCode.UpArrow))
+        else if(Input.GetKeyDown(KeyCode.W))
         {
             Debug.Log("Slide Up!");
             Slide(Direction.UP);
+            GameManager.Inst.PlayerActed = true;
+            UIManager.Inst.SetTurnEndButton(true);
         }
-        if(Input.GetKeyDown(KeyCode.LeftArrow))
+        else if(Input.GetKeyDown(KeyCode.A))
         {
             Debug.Log("Slide Left!");
             Slide(Direction.LEFT);
+            GameManager.Inst.PlayerActed = true;
+            UIManager.Inst.SetTurnEndButton(true);
         }
     }
 
@@ -101,6 +110,7 @@ public class Board : MonoBehaviour
 
                     _boardState[changedX, changedY].curPiece = null;
                     _boardState[changedX, changedY].curCheckerPlayer = PlayerEnum.EMPTY;
+
                 }
                 else
                 {
@@ -119,12 +129,14 @@ public class Board : MonoBehaviour
     /// <param name="p2">Merging piece</param>
     public Piece Merge(Piece p1, Piece p2)
     {
-        //Ignore king merge(which cause king turns into pawn)
-        Debug.Log(p1.pieceClass + 1);
         GameObject go = GameManager.Inst.GetObjectByPieceEnum(p1.pieceClass + 1);
-        Piece res = Instantiate(go, p1.transform.position, Quaternion.identity).GetComponent<Piece>();
-        res.curCoord = p1.curCoord;
-        res.Initialize(p1.player);
+        Piece res = null;
+        if(go != null)
+        {
+            res = Instantiate(go, p1.transform.position, Quaternion.identity).GetComponent<Piece>();
+            res.curCoord = p1.curCoord;
+            res.Initialize(p1.player);
+        }
         Destroy(p1.gameObject);
         Destroy(p2.gameObject);
 
@@ -136,10 +148,9 @@ public class Board : MonoBehaviour
         if(coordList == null) return;
         foreach(var item in coordList)
         {
-            Debug.Log(_boardState[item.X, item.Y].name);
+            // Debug.Log(_boardState[item.X, item.Y].name);
             _boardState[item.X, item.Y].Paint(Color.green);
         }
-        GameManager.Inst.isHighlighted = true;
     }
 
     public void ResetPainted()
@@ -151,6 +162,5 @@ public class Board : MonoBehaviour
                 _boardState[i,j].Paint( (i+j)%2==0 ? new Color(60/255f,60/255f,60/255f) : new Color(200/255f,200/255f,200/255f));
             }
         }
-        GameManager.Inst.isHighlighted = false;
     }
 }

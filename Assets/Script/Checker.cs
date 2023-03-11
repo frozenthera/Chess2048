@@ -39,12 +39,53 @@ public class Checker : MonoBehaviour
         curPiece = null;
     }
 
-
     public void OnMouseDown()
     {
-        if(curCheckerPlayer != PlayerEnum.EMPTY) return;
+        if(GameManager.Inst.PlayerActed) return;
 
-        Spawn(PieceEnum.PAWN);
+        if(GameManager.Inst.curSelected != null)
+        {
+            Piece temp = GameManager.Inst.curSelected;
+            foreach(var item in GameManager.Inst.curMovable)
+            {
+                if(item.X == this.coord.X && item.Y == this.coord.Y)
+                {
+                    if(GameManager.Inst.boardState[item.X, item.Y].curCheckerPlayer != PlayerEnum.EMPTY)
+                    {
+                        GameManager.Inst.boardState[item.X, item.Y].RemovePiece();
+                    }
+                    GameManager.Inst.boardState[temp.curCoord.X, temp.curCoord.Y].MovePiece(this);
+                    Board.Inst.ResetPainted();
+                    GameManager.Inst.curSelected = null;
+                    GameManager.Inst.curMovable = null;
+
+                    GameManager.Inst.PlayerActed = true;
+                    UIManager.Inst.SetTurnEndButton(true);
+                }
+            }
+            return;
+        }
+
+        if(curCheckerPlayer == PlayerEnum.EMPTY)
+        {
+            if(GameManager.Inst.player == PlayerEnum.WHITE)
+            {
+                if(GameManager.Inst.WHITE_Idx > 15) return;
+                Spawn(GameManager.Inst.spawnList[GameManager.Inst.WHITE_Idx++]);
+
+                GameManager.Inst.PlayerActed = true;
+                UIManager.Inst.SetTurnEndButton(true);
+            }
+            else
+            {
+                if(GameManager.Inst.BLACK_Idx > 15) return;
+                Spawn(GameManager.Inst.spawnList[GameManager.Inst.BLACK_Idx++]);
+                
+                GameManager.Inst.PlayerActed = true;
+                UIManager.Inst.SetTurnEndButton(true);
+            }
+            UIManager.Inst.UpdateNextPiece();
+        }
     }
 
     private void Spawn(PieceEnum pieceEnum)

@@ -29,5 +29,6 @@ public enum PieceEnum
     KNIGHT,
     BISHOP,
     QUEEN,
-    KING
+    KING,
+    NULL
 }

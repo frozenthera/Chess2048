@@ -27,4 +27,9 @@ public class Coordinate
     {
         return new Coordinate(p1.X*num, p1.Y*num);
     }
+
+    public override string ToString()
+    {
+        return $"X_{X}, Y_{Y}";
+    }
 }

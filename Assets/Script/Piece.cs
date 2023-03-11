@@ -52,16 +52,23 @@ public abstract class Piece : MonoBehaviour
 
     private void OnMouseDown()
     {
+        if(GameManager.Inst.player != player) return;
+        if(GameManager.Inst.PlayerActed) return;
+        
         if(GameManager.Inst.isHighlighted)
         {
+            GameManager.Inst.curMovable = null;
             Board.Inst.ResetPainted();
         } 
+
         if(GameManager.Inst.curSelected == this) 
         {
             GameManager.Inst.curSelected = null;
             return;
         }
+
         GameManager.Inst.curSelected = this;
+        GameManager.Inst.curMovable = ReachableCoordinate();
         Board.Inst.PaintReachable(ReachableCoordinate());
     }
 
