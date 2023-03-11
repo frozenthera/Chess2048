@@ -24,6 +24,11 @@ public class UIManager : MonoBehaviour
     [SerializeField] TextMeshProUGUI winText;
     [SerializeField] Button gameRestartButton;
     [SerializeField] RectTransform ResultPanel;
+
+    [SerializeField] TextMeshProUGUI slideText;
+    [SerializeField] TextMeshProUGUI moveText;
+    [SerializeField] TextMeshProUGUI spawnText;
+
     private void Start()
     {
         UpdateTurnEndButton();
@@ -49,6 +54,13 @@ public class UIManager : MonoBehaviour
         {
             img.color = Color.white;
         }
+    }
+
+    public void SetTurnPhaseIndicator()
+    {
+        bool bl = GameManager.Inst.TurnPhase;
+        slideText.color = moveText.color = bl ? Color.gray : Color.white;
+        spawnText.color = bl ? Color.white : Color.gray;
     }
 
     public void UpdateNextPiece()

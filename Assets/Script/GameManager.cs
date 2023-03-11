@@ -31,6 +31,20 @@ public class GameManager : MonoBehaviour
     public Transform Pieces => pieces;
 
     public bool isGameOver = false;
+    /// <summary>
+    /// False when player is at Move Phase(Slide or Piece move)<br/>
+    /// True when player is at Spawn Phase
+    /// </summary>
+    private bool turnPhase = false;
+    public bool TurnPhase
+    {
+        get => turnPhase;
+        set
+        {
+            turnPhase = value;
+            UIManager.Inst.SetTurnPhaseIndicator();
+        }
+    }
 
     //FIXME
     private void Awake()

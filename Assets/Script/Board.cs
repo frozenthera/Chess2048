@@ -20,7 +20,7 @@ public class Board : MonoBehaviour
     private void Update()
     {
         if(GameManager.Inst.isGameOver) return;
-        
+
         if(Input.GetKeyDown(KeyCode.E))
         {
            GameManager.Inst.SwapTurn();
@@ -30,33 +30,31 @@ public class Board : MonoBehaviour
 
         if(GameManager.Inst.PlayerActed) return;
 
+        if(GameManager.Inst.TurnPhase) return;
+
         if(Input.GetKeyDown(KeyCode.S))
         {
             Debug.Log("Slide Down!");
             Slide(Direction.DOWN);
-            GameManager.Inst.PlayerActed = true;
-            UIManager.Inst.SetTurnEndButton(true);
+            GameManager.Inst.TurnPhase = true;
         }
         else if(Input.GetKeyDown(KeyCode.D))
         {
             Debug.Log("Slide Right!");
             Slide(Direction.RIGHT);
-            GameManager.Inst.PlayerActed = true;
-            UIManager.Inst.SetTurnEndButton(true);
+            GameManager.Inst.TurnPhase = true;
         }
         else if(Input.GetKeyDown(KeyCode.W))
         {
             Debug.Log("Slide Up!");
             Slide(Direction.UP);
-            GameManager.Inst.PlayerActed = true;
-            UIManager.Inst.SetTurnEndButton(true);
+            GameManager.Inst.TurnPhase = true;
         }
         else if(Input.GetKeyDown(KeyCode.A))
         {
             Debug.Log("Slide Left!");
             Slide(Direction.LEFT);
-            GameManager.Inst.PlayerActed = true;
-            UIManager.Inst.SetTurnEndButton(true);
+            GameManager.Inst.TurnPhase = true;
         }
     }
 
@@ -81,7 +79,8 @@ public class Board : MonoBehaviour
             }
         }
 
-        transform.position = new Vector3(-1.5f, -1.5f, 0);
+        transform.localScale = new Vector3(2,2,1);
+        transform.position = new Vector3(-2f, -3f, 0);
     }
 
     int[] dx = new int[]{0, 1, 0, -1};

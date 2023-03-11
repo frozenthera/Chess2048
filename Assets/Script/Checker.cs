@@ -43,7 +43,7 @@ public class Checker : MonoBehaviour
     {
         if(GameManager.Inst.PlayerActed || GameManager.Inst.isGameOver) return;
 
-        if(GameManager.Inst.curSelected != null)
+        if(GameManager.Inst.curSelected != null && !GameManager.Inst.TurnPhase)
         {
             Piece temp = GameManager.Inst.curSelected;
             foreach(var item in GameManager.Inst.curMovable)
@@ -59,31 +59,28 @@ public class Checker : MonoBehaviour
                     GameManager.Inst.curSelected = null;
                     GameManager.Inst.curMovable = null;
 
-                    GameManager.Inst.PlayerActed = true;
-                    UIManager.Inst.SetTurnEndButton(true);
+                    GameManager.Inst.TurnPhase = true;
                 }
             }
             return;
         }
 
-        if(curCheckerPlayer == PlayerEnum.EMPTY)
+        if(curCheckerPlayer == PlayerEnum.EMPTY && GameManager.Inst.TurnPhase)
         {
             if(GameManager.Inst.player == PlayerEnum.WHITE)
             {
                 if(GameManager.Inst.WHITE_Idx > 15) return;
                 Spawn(GameManager.Inst.spawnList[GameManager.Inst.WHITE_Idx++]);
-
-                GameManager.Inst.PlayerActed = true;
-                UIManager.Inst.SetTurnEndButton(true);
             }
             else
             {
                 if(GameManager.Inst.BLACK_Idx > 15) return;
                 Spawn(GameManager.Inst.spawnList[GameManager.Inst.BLACK_Idx++]);
-                
-                GameManager.Inst.PlayerActed = true;
-                UIManager.Inst.SetTurnEndButton(true);
             }
+
+            GameManager.Inst.PlayerActed = true;
+            UIManager.Inst.SetTurnEndButton(true);
+            GameManager.Inst.TurnPhase = false;
             UIManager.Inst.UpdateNextPiece();
         }
     }
