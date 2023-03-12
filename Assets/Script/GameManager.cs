@@ -10,7 +10,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private List<GameObject> piecePrefabs = new();
     private Dictionary<PieceEnum, GameObject> pieceDict = new();
 
-    public PlayerEnum player = PlayerEnum.WHITE;
+    public PlayerEnum player = PlayerEnum.BLACK;
     public Checker[,] boardState;
 
     public int WHITE_Idx = 0;
@@ -35,8 +35,8 @@ public class GameManager : MonoBehaviour
     /// False when player is at Move Phase(Slide or Piece move)<br/>
     /// True when player is at Spawn Phase
     /// </summary>
-    private bool turnPhase = false;
-    public bool TurnPhase
+    private int turnPhase = 0;
+    public int TurnPhase
     {
         get => turnPhase;
         set
@@ -75,7 +75,13 @@ public class GameManager : MonoBehaviour
 
         PlayerActed = false;
         UIManager.Inst.SetTurnEndButton(false);
+
+        turnPhase = 0;
+        UIManager.Inst.SetTurnPhaseIndicator();
         
+        curSelected = null;
+        Board.Inst.ResetPainted();
+
         for(int i=0; i<4; i++)
         {
             for(int j=0; j<4; j++)
@@ -111,7 +117,7 @@ public class GameManager : MonoBehaviour
         WHITE_Idx = 0;
         BLACK_Idx = 0;
         PlayerActed = false;
-        player = PlayerEnum.WHITE;
+        player = PlayerEnum.BLACK;
         for(int i=0; i<4; i++)
         {
             for(int j=0; j<4; j++)

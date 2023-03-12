@@ -58,9 +58,10 @@ public class UIManager : MonoBehaviour
 
     public void SetTurnPhaseIndicator()
     {
-        bool bl = GameManager.Inst.TurnPhase;
-        slideText.color = moveText.color = bl ? Color.gray : Color.white;
-        spawnText.color = bl ? Color.white : Color.gray;
+        int num = GameManager.Inst.TurnPhase;
+        slideText.color = num < 1 ? Color.white : Color.gray; 
+        moveText.color  = num < 2 ? Color.white : Color.gray;
+        spawnText.color = num < 3 ? Color.white : Color.gray;
     }
 
     public void UpdateNextPiece()

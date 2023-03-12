@@ -12,7 +12,7 @@ public abstract class Piece : MonoBehaviour
     protected List<Coordinate> diff;
     protected int range;
 
-    public List<Coordinate> ReachableCoordinate()
+    public virtual List<Coordinate> ReachableCoordinate()
     {
         List<Coordinate> res = new();
 
@@ -38,6 +38,7 @@ public abstract class Piece : MonoBehaviour
                 }
             }
         }
+
         return res;
     }
 
@@ -54,7 +55,8 @@ public abstract class Piece : MonoBehaviour
     {
         if(GameManager.Inst.player != player) return;
         if(GameManager.Inst.PlayerActed) return;
-        
+        if(GameManager.Inst.TurnPhase > 2) return;
+
         if(GameManager.Inst.isHighlighted)
         {
             GameManager.Inst.curMovable = null;
@@ -69,6 +71,11 @@ public abstract class Piece : MonoBehaviour
 
         GameManager.Inst.curSelected = this;
         GameManager.Inst.curMovable = ReachableCoordinate();
+        if(GameManager.Inst.curMovable.Count == 0)
+        {
+            GameManager.Inst.curSelected = null;
+            return;
+        }
         Board.Inst.PaintReachable(ReachableCoordinate());
     }
 

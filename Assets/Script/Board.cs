@@ -30,31 +30,31 @@ public class Board : MonoBehaviour
 
         if(GameManager.Inst.PlayerActed) return;
 
-        if(GameManager.Inst.TurnPhase) return;
+        if(GameManager.Inst.TurnPhase > 0) return;
 
         if(Input.GetKeyDown(KeyCode.S))
         {
             Debug.Log("Slide Down!");
             Slide(Direction.DOWN);
-            GameManager.Inst.TurnPhase = true;
+            GameManager.Inst.TurnPhase = 1;
         }
         else if(Input.GetKeyDown(KeyCode.D))
         {
             Debug.Log("Slide Right!");
             Slide(Direction.RIGHT);
-            GameManager.Inst.TurnPhase = true;
+            GameManager.Inst.TurnPhase = 1;
         }
         else if(Input.GetKeyDown(KeyCode.W))
         {
             Debug.Log("Slide Up!");
             Slide(Direction.UP);
-            GameManager.Inst.TurnPhase = true;
+            GameManager.Inst.TurnPhase = 1;
         }
         else if(Input.GetKeyDown(KeyCode.A))
         {
             Debug.Log("Slide Left!");
             Slide(Direction.LEFT);
-            GameManager.Inst.TurnPhase = true;
+            GameManager.Inst.TurnPhase = 1;
         }
     }
 
@@ -119,12 +119,12 @@ public class Board : MonoBehaviour
                     GameManager.Inst.boardState[changedX, changedY].curCheckerPlayer = PlayerEnum.EMPTY;
 
                 }
-                else
-                {
-                    //shoud destroy lower one
-                    GameManager.Inst.boardState[changedX+_dx, changedY+_dy].RemovePiece();
-                    GameManager.Inst.boardState[changedX, changedY].MovePiece(GameManager.Inst.boardState[changedX+_dx, changedY+_dy]);
-                }
+                // else
+                // {
+                //     //Destroying cruncing piece
+                //     GameManager.Inst.boardState[changedX+_dx, changedY+_dy].RemovePiece();
+                //     GameManager.Inst.boardState[changedX, changedY].MovePiece(GameManager.Inst.boardState[changedX+_dx, changedY+_dy]);
+                // }
             }
         }
     }
