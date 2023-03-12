@@ -4,9 +4,9 @@ using UnityEngine;
 using Unity.Netcode;
 public abstract class Piece : NetworkBehaviour
 {
-    public PieceEnum pieceClass;
-    public PlayerEnum player;
-    public Coordinate curCoord;
+    public NetworkVariable<PieceEnum> pieceClass;
+    public NetworkVariable<PlayerEnum> player;
+    public NetworkVariable<Coordinate> curCoord;
     [SerializeField] Sprite[] spriteList = new Sprite[2];
 
     protected List<Coordinate> diff;
@@ -20,10 +20,10 @@ public abstract class Piece : NetworkBehaviour
         {
             for(int j=1; j<range+1; j++)
             {
-                Coordinate temp = curCoord + diff[i]*j;
+                Coordinate temp = curCoord.Value + diff[i]*j;
                 if(temp.X < 0 || temp.X > 3 || temp.Y < 0 || temp.Y > 3) continue;
 
-                if(GameManager.Inst.isTherePieceWithOppo(temp, player))
+                if(GameManager.Inst.isTherePieceWithOppo(temp, player.Value))
                 {
                     res.Add(temp);
                     break;
@@ -44,8 +44,8 @@ public abstract class Piece : NetworkBehaviour
 
     public void Initialize(PlayerEnum _player)
     {
-        player = _player;
-        GetComponent<SpriteRenderer>().sprite = spriteList[(int)player];
+        player.Value = _player;
+        GetComponent<SpriteRenderer>().sprite = spriteList[(int)player.Value];
         _Initianlize();
     }
 
@@ -53,7 +53,7 @@ public abstract class Piece : NetworkBehaviour
 
     private void OnMouseDown()
     {
-        if(GameManager.Inst.player != player) return;
+        if(GameManager.Inst.player.Value != player.Value) return;
         if(GameManager.Inst.PlayerActed.Value) return;
         if(GameManager.Inst.TurnPhase > 2) return;
 

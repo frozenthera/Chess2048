@@ -4,8 +4,8 @@ using UnityEngine;
 using Unity.Netcode;
 public class Checker : NetworkBehaviour
 {
-    public PlayerEnum curCheckerPlayer;
-    public Coordinate coord { get; set; }
+    public NetworkVariable<PlayerEnum> curCheckerPlayer;
+    public NetworkVariable<Coordinate> coord { get; set; }
     public Piece curPiece;
     private SpriteRenderer sp;
     
@@ -28,7 +28,7 @@ public class Checker : NetworkBehaviour
         dest.curCheckerPlayer = curCheckerPlayer;
         dest.curPiece = curPiece;
 
-        curCheckerPlayer = PlayerEnum.EMPTY;
+        curCheckerPlayer.Value = PlayerEnum.EMPTY;
         curPiece = null;
     }
 
@@ -37,7 +37,7 @@ public class Checker : NetworkBehaviour
         curPiece.GetComponent<NetworkObject>().Despawn();
         // Destroy(curPiece.gameObject);
 
-        curCheckerPlayer = PlayerEnum.EMPTY;
+        curCheckerPlayer.Value = PlayerEnum.EMPTY;
         curPiece = null;
     }
 
@@ -50,13 +50,13 @@ public class Checker : NetworkBehaviour
             Piece temp = GameManager.Inst.curSelected;
             foreach(var item in GameManager.Inst.curMovable)
             {
-                if(item.X == this.coord.X && item.Y == this.coord.Y)
+                if(item.X == this.coord.Value.X && item.Y == this.coord.Value.Y)
                 {
-                    if(GameManager.Inst.boardState[item.X, item.Y].curCheckerPlayer != PlayerEnum.EMPTY)
+                    if(GameManager.Inst.boardState[item.X, item.Y].curCheckerPlayer.Value != PlayerEnum.EMPTY)
                     {
                         GameManager.Inst.boardState[item.X, item.Y].RemovePiece();
                     }
-                    GameManager.Inst.boardState[temp.curCoord.X, temp.curCoord.Y].MovePiece(this);
+                    GameManager.Inst.boardState[temp.curCoord.Value.X, temp.curCoord.Value.Y].MovePiece(this);
                     Board.Inst.ResetPainted();
                     GameManager.Inst.curSelected = null;
                     GameManager.Inst.curMovable = null;
@@ -67,9 +67,9 @@ public class Checker : NetworkBehaviour
             return;
         }
 
-        if(curCheckerPlayer == PlayerEnum.EMPTY && GameManager.Inst.TurnPhase < 3)
+        if(curCheckerPlayer.Value == PlayerEnum.EMPTY && GameManager.Inst.TurnPhase < 3)
         {
-            if(GameManager.Inst.player == PlayerEnum.WHITE)
+            if(GameManager.Inst.player.Value == PlayerEnum.WHITE)
             {
                 if(GameManager.Inst.WHITE_Idx.Value > 15) return;
                 Spawn(GameManager.Inst.spawnList[GameManager.Inst.WHITE_Idx.Value++]);
@@ -95,7 +95,7 @@ public class Checker : NetworkBehaviour
 
         curCheckerPlayer = GameManager.Inst.player;
         curPiece.curCoord = coord;
-        curPiece.Initialize(GameManager.Inst.player);
+        curPiece.Initialize(GameManager.Inst.player.Value);
     }
 
     public void Paint(Color color)

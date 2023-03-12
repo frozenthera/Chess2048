@@ -27,6 +27,6 @@ public class King : Piece
         base.OnDestroy();
         
         if(GameManager.Inst.isGameOver) return;
-        GameManager.Inst.GameOver(player == PlayerEnum.WHITE ? PlayerEnum.BLACK : PlayerEnum.WHITE);
+        GameManager.Inst.GameOver(player.Value == PlayerEnum.WHITE ? PlayerEnum.BLACK : PlayerEnum.WHITE);
     }
 }

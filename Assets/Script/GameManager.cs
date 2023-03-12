@@ -11,7 +11,7 @@ public class GameManager : NetworkBehaviour
     [SerializeField] private List<GameObject> piecePrefabs = new();
     private Dictionary<PieceEnum, GameObject> pieceDict = new();
 
-    public PlayerEnum player = PlayerEnum.BLACK;
+    public NetworkVariable<PlayerEnum> player = new NetworkVariable<PlayerEnum>(PlayerEnum.BLACK);
     public Checker[,] boardState;
 
     public NetworkVariable<int> WHITE_Idx = new NetworkVariable<int>(0);
@@ -56,9 +56,10 @@ public class GameManager : NetworkBehaviour
 
     private void Start()
     {
+        pieceDict = new();
         foreach(var item in piecePrefabs)
         {
-            pieceDict.Add(item.GetComponent<Piece>().pieceClass, item);
+            pieceDict.Add(item.GetComponent<Piece>().pieceClass.Value, item);
         }
     }
 
@@ -70,9 +71,9 @@ public class GameManager : NetworkBehaviour
 
     public void SwapTurn()
     {
-        if(player == PlayerEnum.WHITE) 
-            player = PlayerEnum.BLACK;
-        else player = PlayerEnum.WHITE;
+        if(player.Value == PlayerEnum.WHITE) 
+            player.Value = PlayerEnum.BLACK;
+        else player.Value = PlayerEnum.WHITE;
 
         PlayerActed.Value = false;
         // UIManager.Inst.SetTurnEndButton(false);
@@ -87,8 +88,8 @@ public class GameManager : NetworkBehaviour
         {
             for(int j=0; j<4; j++)
             {
-                if(boardState[i,j].curCheckerPlayer == PlayerEnum.EMPTY) continue;
-                else if(boardState[i,j].curCheckerPlayer == player) boardState[i,j].curPiece.GetComponent<BoxCollider2D>().enabled = true;
+                if(boardState[i,j].curCheckerPlayer.Value == PlayerEnum.EMPTY) continue;
+                else if(boardState[i,j].curCheckerPlayer.Value == player.Value) boardState[i,j].curPiece.GetComponent<BoxCollider2D>().enabled = true;
                 else boardState[i,j].curPiece.GetComponent<BoxCollider2D>().enabled = false;
             }
         }
@@ -96,12 +97,12 @@ public class GameManager : NetworkBehaviour
 
     public bool isTherePieceWithOppo(Coordinate coord, PlayerEnum compare)
     {
-        return boardState[coord.X, coord.Y].curCheckerPlayer != compare && boardState[coord.X, coord.Y].curCheckerPlayer != PlayerEnum.EMPTY; 
+        return boardState[coord.X, coord.Y].curCheckerPlayer.Value != compare && boardState[coord.X, coord.Y].curCheckerPlayer.Value != PlayerEnum.EMPTY; 
     }
 
     public bool isTherePiece(Coordinate coord)
     {
-        return boardState[coord.X, coord.Y].curCheckerPlayer != PlayerEnum.EMPTY;
+        return boardState[coord.X, coord.Y].curCheckerPlayer.Value != PlayerEnum.EMPTY;
     }
 
     public void GameOver(PlayerEnum winner)
@@ -118,12 +119,12 @@ public class GameManager : NetworkBehaviour
         WHITE_Idx.Value = 0;
         BLACK_Idx.Value = 0;
         PlayerActed.Value = false;
-        player = PlayerEnum.BLACK;
+        player.Value = PlayerEnum.BLACK;
         for(int i=0; i<4; i++)
         {
             for(int j=0; j<4; j++)
             {
-                boardState[i,j].curCheckerPlayer = PlayerEnum.EMPTY;
+                boardState[i,j].curCheckerPlayer.Value = PlayerEnum.EMPTY;
                 boardState[i,j].curPiece = null;
             }
         }
