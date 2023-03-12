@@ -59,7 +59,7 @@ public class GameManager : NetworkBehaviour
         pieceDict = new();
         foreach(var item in piecePrefabs)
         {
-            pieceDict.Add(item.GetComponent<Piece>().pieceClass.Value, item);
+            pieceDict.Add(item.GetComponent<Piece>().pieceClass, item);
         }
     }
 

@@ -4,8 +4,8 @@ using UnityEngine;
 using Unity.Netcode;
 public class Checker : NetworkBehaviour
 {
-    public NetworkVariable<PlayerEnum> curCheckerPlayer;
-    public NetworkVariable<Coordinate> coord { get; set; }
+    public NetworkVariable<PlayerEnum> curCheckerPlayer = new();
+    public NetworkVariable<Coordinate> coord = new();
     public Piece curPiece;
     private SpriteRenderer sp;
     

@@ -4,7 +4,7 @@ using UnityEngine;
 using Unity.Netcode;
 public abstract class Piece : NetworkBehaviour
 {
-    public NetworkVariable<PieceEnum> pieceClass;
+    public PieceEnum pieceClass;
     public NetworkVariable<PlayerEnum> player;
     public NetworkVariable<Coordinate> curCoord;
     [SerializeField] Sprite[] spriteList = new Sprite[2];

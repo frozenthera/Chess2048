@@ -25,17 +25,17 @@ public class Board : NetworkBehaviour
             {
                 Vector2 pos = new Vector2(i, j);
                 GameManager.Inst.boardState[i,j] = Instantiate(squarePrefab, pos, Quaternion.identity, transform).GetComponent<Checker>();
-                GameManager.Inst.boardState[i,j].GetComponent<NetworkObject>().Spawn();
-
                 GameManager.Inst.boardState[i,j].name = i + ", " + j;
-                GameManager.Inst.boardState[i,j].coord.Value = new Coordinate(i,j);
-                GameManager.Inst.boardState[i,j].curCheckerPlayer.Value = PlayerEnum.EMPTY;
                 GameManager.Inst.boardState[i,j].curPiece = null;
-
                 if((i+j) % 2 == 0)
                 {
                     GameManager.Inst.boardState[i,j].GetComponent<SpriteRenderer>().color = new Color(60/255f,60/255f,60/255f);
-                }   
+                }
+
+                GameManager.Inst.boardState[i,j].GetComponent<NetworkObject>().Spawn();  
+                
+                GameManager.Inst.boardState[i,j].coord.Value = new Coordinate(i, j);
+                GameManager.Inst.boardState[i,j].curCheckerPlayer.Value = PlayerEnum.EMPTY;
             }
         }
 
@@ -96,7 +96,7 @@ public class Board : NetworkBehaviour
     /// <param name="p2">Merging piece</param>
     public Piece Merge(Piece p1, Piece p2)
     {
-        GameObject go = GameManager.Inst.GetObjectByPieceEnum(p1.pieceClass.Value + 1);
+        GameObject go = GameManager.Inst.GetObjectByPieceEnum(p1.pieceClass + 1);
         Piece res = null;
         if(go != null)
         {
