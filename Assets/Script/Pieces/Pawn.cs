@@ -25,7 +25,7 @@ public class Pawn : Piece
         {
             for(int j=1; j<range+1; j++)
             {
-                Coordinate temp = new Coordinate(curCoordX, curCoordY) + diff[i]*j;
+                Coordinate temp = curCoord + diff[i]*j;
                 if(temp.X < 0 || temp.X > 3 || temp.Y < 0 || temp.Y > 3) continue;
 
                 if(GameManager.Inst.isTherePieceWithOppo(temp, player))

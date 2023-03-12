@@ -25,7 +25,7 @@ public class King : Piece
     public override void OnDestroy()
     {
         base.OnDestroy();
-
+        
         if(GameManager.Inst.isGameOver) return;
         GameManager.Inst.GameOver(player == PlayerEnum.WHITE ? PlayerEnum.BLACK : PlayerEnum.WHITE);
     }

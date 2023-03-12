@@ -41,9 +41,11 @@ public class UIManager : NetworkBehaviour
             GameManager.Inst.ResetGame();
             ResultPanel.gameObject.SetActive(false);
         });
+
+        GameManager.Inst.PlayerActed.OnValueChanged += SetTurnEndButton;
     }
 
-    public void SetTurnEndButton(bool current)
+    public void SetTurnEndButton(bool previous, bool current)
     {
         Image img = turnEndButton.GetComponent<Image>();
         if(current)
@@ -87,7 +89,7 @@ public class UIManager : NetworkBehaviour
 
     public void UpdateTurnEndButton()
     {
-        turnPlayerInfoText.text = "Current Player\n" + GameManager.Inst.curPlayer.ToString();
+        turnPlayerInfoText.text = "Current Player\n" + GameManager.Inst.player.ToString();
     }
 
     public void SetResultPanel(PlayerEnum winner)
@@ -99,7 +101,8 @@ public class UIManager : NetworkBehaviour
     public void ResetUI()
     {
         UpdateTurnEndButton();
-        SetTurnEndButton(false);
+        GameManager.Inst.PlayerActed.Value = false;
+        // SetTurnEndButton(true, false);
         UpdateNextPiece();
     }
 }

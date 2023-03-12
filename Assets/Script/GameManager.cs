@@ -8,22 +8,33 @@ public class GameManager : NetworkBehaviour
     //FIXME_Later move to Singleton<>
     public static GameManager Inst;
 
-    //Variables with no synchronization
     [SerializeField] private List<GameObject> piecePrefabs = new();
     private Dictionary<PieceEnum, GameObject> pieceDict = new();
-    public bool PlayerActed = false;
+
+    public PlayerEnum player = PlayerEnum.BLACK;
+    public Checker[,] boardState;
+
+    public NetworkVariable<int> WHITE_Idx = new NetworkVariable<int>(0);
+    public NetworkVariable<int> BLACK_Idx = new NetworkVariable<int>(0);
+
+    public NetworkVariable<bool> PlayerActed = new NetworkVariable<bool>(false);
+
     public bool isHighlighted
     {
         get => curSelected != null;
     }
+
     public Piece curSelected = null;
     public List<Coordinate> curMovable;
     public List<PieceEnum> spawnList;
+
     [SerializeField] private Transform pieces;
     public Transform Pieces => pieces;
+
+    public bool isGameOver = false;
     /// <summary>
-    /// False when curPlayer is at Move Phase(Slide or Piece move)<br/>
-    /// True when curPlayer is at Spawn Phase
+    /// False when player is at Move Phase(Slide or Piece move)<br/>
+    /// True when player is at Spawn Phase
     /// </summary>
     private int turnPhase = 0;
     public int TurnPhase
@@ -36,14 +47,6 @@ public class GameManager : NetworkBehaviour
         }
     }
 
-    // Variable which needs Synchronization
-    public bool isGameOver = false;
-    public NetworkVariable<PlayerEnum> curPlayer = new NetworkVariable<PlayerEnum>(PlayerEnum.BLACK);
-    public Checker[,] boardState;
-    public NetworkVariable<int> WHITE_Idx = new NetworkVariable<int>(0);
-    public NetworkVariable<int> BLACK_Idx = new NetworkVariable<int>(0);
-    public NetworkVariable<PlayerEnum[,]> boardPlayerState = new();
-
     //FIXME
     private void Awake()
     {
@@ -55,7 +58,7 @@ public class GameManager : NetworkBehaviour
     {
         foreach(var item in piecePrefabs)
         {
-            pieceDict.Add(item.GetComponent<Piece>().pieceClass.Value, item);
+            pieceDict.Add(item.GetComponent<Piece>().pieceClass, item);
         }
     }
 
@@ -67,11 +70,11 @@ public class GameManager : NetworkBehaviour
 
     public void SwapTurn()
     {
-        if(curPlayer.Value == PlayerEnum.WHITE) 
-            curPlayer.Value = PlayerEnum.BLACK;
-        else curPlayer.Value = PlayerEnum.WHITE;
+        if(player == PlayerEnum.WHITE) 
+            player = PlayerEnum.BLACK;
+        else player = PlayerEnum.WHITE;
 
-        PlayerActed = false;
+        PlayerActed.Value = false;
         // UIManager.Inst.SetTurnEndButton(false);
 
         turnPhase = 0;
@@ -84,21 +87,21 @@ public class GameManager : NetworkBehaviour
         {
             for(int j=0; j<4; j++)
             {
-                if(boardState[i,j].curCheckerPlayer.Value == PlayerEnum.EMPTY) continue;
-                else if(boardState[i,j].curCheckerPlayer.Value == curPlayer.Value) boardState[i,j].curPiece.Value.GetComponent<BoxCollider2D>().enabled = true;
-                else boardState[i,j].curPiece.Value.GetComponent<BoxCollider2D>().enabled = false;
+                if(boardState[i,j].curCheckerPlayer == PlayerEnum.EMPTY) continue;
+                else if(boardState[i,j].curCheckerPlayer == player) boardState[i,j].curPiece.GetComponent<BoxCollider2D>().enabled = true;
+                else boardState[i,j].curPiece.GetComponent<BoxCollider2D>().enabled = false;
             }
         }
     }
 
     public bool isTherePieceWithOppo(Coordinate coord, PlayerEnum compare)
     {
-        return boardState[coord.X, coord.Y].curCheckerPlayer.Value != compare && boardState[coord.X, coord.Y].curCheckerPlayer.Value != PlayerEnum.EMPTY; 
+        return boardState[coord.X, coord.Y].curCheckerPlayer != compare && boardState[coord.X, coord.Y].curCheckerPlayer != PlayerEnum.EMPTY; 
     }
 
     public bool isTherePiece(Coordinate coord)
     {
-        return boardState[coord.X, coord.Y].curCheckerPlayer.Value != PlayerEnum.EMPTY;
+        return boardState[coord.X, coord.Y].curCheckerPlayer != PlayerEnum.EMPTY;
     }
 
     public void GameOver(PlayerEnum winner)
@@ -114,13 +117,13 @@ public class GameManager : NetworkBehaviour
         curMovable = null;
         WHITE_Idx.Value = 0;
         BLACK_Idx.Value = 0;
-        PlayerActed = false;
-        curPlayer.Value = PlayerEnum.BLACK;
+        PlayerActed.Value = false;
+        player = PlayerEnum.BLACK;
         for(int i=0; i<4; i++)
         {
             for(int j=0; j<4; j++)
             {
-                boardState[i,j].curCheckerPlayer.Value = PlayerEnum.EMPTY;
+                boardState[i,j].curCheckerPlayer = PlayerEnum.EMPTY;
                 boardState[i,j].curPiece = null;
             }
         }

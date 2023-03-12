@@ -1,23 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Unity.Netcode;
 
-public class Coordinate : INetworkSerializable
+public class Coordinate
 {
-    public int X;
-    public int Y;
+    public int X { get; set; }
+    public int Y { get; set; }
 
     public Coordinate(int x, int y)
     {
         X = x;
         Y = y;
-    }
-
-    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
-    {
-        serializer.SerializeValue(ref X);
-        serializer.SerializeValue(ref Y);
     }
 
     public static Coordinate operator+(Coordinate p1, Coordinate p2)
