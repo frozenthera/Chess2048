@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-public class Board : MonoBehaviour
+using Unity.Netcode;
+public class Board : NetworkBehaviour
 {
     public static Board Inst;
     [SerializeField] private GameObject squarePrefab;
@@ -14,51 +14,10 @@ public class Board : MonoBehaviour
 
     private void Start()
     {
-        Initialize();
+        // Initialize();
     }
 
-    private void Update()
-    {
-        if(GameManager.Inst.isGameOver) return;
-
-        if(Input.GetKeyDown(KeyCode.E))
-        {
-           GameManager.Inst.SwapTurn();
-           UIManager.Inst.UpdateTurnEndButton();
-           return;
-        }
-
-        if(GameManager.Inst.PlayerActed) return;
-
-        if(GameManager.Inst.TurnPhase > 0) return;
-
-        if(Input.GetKeyDown(KeyCode.S))
-        {
-            Debug.Log("Slide Down!");
-            Slide(Direction.DOWN);
-            GameManager.Inst.TurnPhase = 1;
-        }
-        else if(Input.GetKeyDown(KeyCode.D))
-        {
-            Debug.Log("Slide Right!");
-            Slide(Direction.RIGHT);
-            GameManager.Inst.TurnPhase = 1;
-        }
-        else if(Input.GetKeyDown(KeyCode.W))
-        {
-            Debug.Log("Slide Up!");
-            Slide(Direction.UP);
-            GameManager.Inst.TurnPhase = 1;
-        }
-        else if(Input.GetKeyDown(KeyCode.A))
-        {
-            Debug.Log("Slide Left!");
-            Slide(Direction.LEFT);
-            GameManager.Inst.TurnPhase = 1;
-        }
-    }
-
-    private void Initialize()
+    public void Initialize()
     {
         for(int i=0; i<4; i++) 
         {
@@ -66,7 +25,8 @@ public class Board : MonoBehaviour
             {
                 Vector2 pos = new Vector2(i, j);
                 GameManager.Inst.boardState[i,j] = Instantiate(squarePrefab, pos, Quaternion.identity, transform).GetComponent<Checker>();
-                
+                GameManager.Inst.boardState[i,j].GetComponent<NetworkObject>().Spawn();
+
                 GameManager.Inst.boardState[i,j].name = i + ", " + j;
                 GameManager.Inst.boardState[i,j].coord = new Coordinate(i,j);
                 GameManager.Inst.boardState[i,j].curCheckerPlayer = PlayerEnum.EMPTY;
@@ -141,11 +101,15 @@ public class Board : MonoBehaviour
         if(go != null)
         {
             res = Instantiate(go, p1.transform.position, Quaternion.identity, GameManager.Inst.Pieces).GetComponent<Piece>();
+            res.GetComponent<NetworkObject>().Spawn();
+
             res.curCoord = p1.curCoord;
             res.Initialize(p1.player);
         }
-        Destroy(p1.gameObject);
-        Destroy(p2.gameObject);
+        p1.GetComponent<NetworkObject>().Despawn();
+        p2.GetComponent<NetworkObject>().Despawn();
+        // Destroy(p1.gameObject);
+        // Destroy(p2.gameObject);
 
         return res;
     }

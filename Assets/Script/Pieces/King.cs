@@ -22,8 +22,10 @@ public class King : Piece
         range = 1;
     }
 
-    private void OnDestroy()
+    public override void OnDestroy()
     {
+        base.OnDestroy();
+        
         if(GameManager.Inst.isGameOver) return;
         GameManager.Inst.GameOver(player == PlayerEnum.WHITE ? PlayerEnum.BLACK : PlayerEnum.WHITE);
     }

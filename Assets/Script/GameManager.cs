@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
-public class GameManager : MonoBehaviour
+public class GameManager : NetworkBehaviour
 {
     //FIXME_Later move to Singleton<>
     public static GameManager Inst;
@@ -13,10 +14,10 @@ public class GameManager : MonoBehaviour
     public PlayerEnum player = PlayerEnum.BLACK;
     public Checker[,] boardState;
 
-    public int WHITE_Idx = 0;
-    public int BLACK_Idx = 0;
+    public NetworkVariable<int> WHITE_Idx = new NetworkVariable<int>(0);
+    public NetworkVariable<int> BLACK_Idx = new NetworkVariable<int>(0);
 
-    public bool PlayerActed = false;
+    public NetworkVariable<bool> PlayerActed = new NetworkVariable<bool>(false);
 
     public bool isHighlighted
     {
@@ -73,8 +74,8 @@ public class GameManager : MonoBehaviour
             player = PlayerEnum.BLACK;
         else player = PlayerEnum.WHITE;
 
-        PlayerActed = false;
-        UIManager.Inst.SetTurnEndButton(false);
+        PlayerActed.Value = false;
+        // UIManager.Inst.SetTurnEndButton(false);
 
         turnPhase = 0;
         UIManager.Inst.SetTurnPhaseIndicator();
@@ -114,9 +115,9 @@ public class GameManager : MonoBehaviour
     {
         curSelected = null;
         curMovable = null;
-        WHITE_Idx = 0;
-        BLACK_Idx = 0;
-        PlayerActed = false;
+        WHITE_Idx.Value = 0;
+        BLACK_Idx.Value = 0;
+        PlayerActed.Value = false;
         player = PlayerEnum.BLACK;
         for(int i=0; i<4; i++)
         {
@@ -129,7 +130,9 @@ public class GameManager : MonoBehaviour
         foreach(var item in Pieces.GetComponentsInChildren<Transform>())
         {
             if(item == Pieces) continue;
-            Destroy(item.gameObject);
+
+            // Destroy(item.gameObject);
+            item.GetComponent<NetworkObject>().Despawn();
         }
         UIManager.Inst.ResetUI();
         isGameOver = false;

@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-public class Checker : MonoBehaviour
+using Unity.Netcode;
+public class Checker : NetworkBehaviour
 {
     public PlayerEnum curCheckerPlayer;
     public Coordinate coord { get; set; }
@@ -34,14 +34,16 @@ public class Checker : MonoBehaviour
 
     public void RemovePiece()
     {
-        Destroy(curPiece.gameObject);
+        curPiece.GetComponent<NetworkObject>().Despawn();
+        // Destroy(curPiece.gameObject);
+
         curCheckerPlayer = PlayerEnum.EMPTY;
         curPiece = null;
     }
 
     public void OnMouseDown()
     {
-        if(GameManager.Inst.PlayerActed || GameManager.Inst.isGameOver) return;
+        if(GameManager.Inst.PlayerActed.Value || GameManager.Inst.isGameOver) return;
 
         if(GameManager.Inst.curSelected != null && GameManager.Inst.TurnPhase < 2)
         {
@@ -69,17 +71,17 @@ public class Checker : MonoBehaviour
         {
             if(GameManager.Inst.player == PlayerEnum.WHITE)
             {
-                if(GameManager.Inst.WHITE_Idx > 15) return;
-                Spawn(GameManager.Inst.spawnList[GameManager.Inst.WHITE_Idx++]);
+                if(GameManager.Inst.WHITE_Idx.Value > 15) return;
+                Spawn(GameManager.Inst.spawnList[GameManager.Inst.WHITE_Idx.Value++]);
             }
             else
             {
-                if(GameManager.Inst.BLACK_Idx > 15) return;
-                Spawn(GameManager.Inst.spawnList[GameManager.Inst.BLACK_Idx++]);
+                if(GameManager.Inst.BLACK_Idx.Value > 15) return;
+                Spawn(GameManager.Inst.spawnList[GameManager.Inst.BLACK_Idx.Value++]);
             }
 
-            GameManager.Inst.PlayerActed = true;
-            UIManager.Inst.SetTurnEndButton(true);
+            GameManager.Inst.PlayerActed.Value = true;
+            // UIManager.Inst.SetTurnEndButton(true);
             GameManager.Inst.TurnPhase = 3;
             UIManager.Inst.UpdateNextPiece();
         }
@@ -89,6 +91,7 @@ public class Checker : MonoBehaviour
     {
         GameObject go = GameManager.Inst.GetObjectByPieceEnum(pieceEnum);
         curPiece = Instantiate(go, transform.position, Quaternion.identity, GameManager.Inst.Pieces).GetComponent<Piece>();
+        curPiece.GetComponent<NetworkObject>().Spawn();
 
         curCheckerPlayer = GameManager.Inst.player;
         curPiece.curCoord = coord;

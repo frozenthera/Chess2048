@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-public abstract class Piece : MonoBehaviour
+using Unity.Netcode;
+public abstract class Piece : NetworkBehaviour
 {
     public PieceEnum pieceClass;
     public PlayerEnum player;
@@ -54,7 +54,7 @@ public abstract class Piece : MonoBehaviour
     private void OnMouseDown()
     {
         if(GameManager.Inst.player != player) return;
-        if(GameManager.Inst.PlayerActed) return;
+        if(GameManager.Inst.PlayerActed.Value) return;
         if(GameManager.Inst.TurnPhase > 2) return;
 
         if(GameManager.Inst.isHighlighted)

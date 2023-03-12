@@ -756,11 +756,11 @@ PlayerSettings:
   apiCompatibilityLevel: 6
   activeInputHandler: 0
   windowsGamepadBackendHint: 0
-  cloudProjectId: 
+  cloudProjectId: 46783998-8ee9-467f-8625-77cc228b6f39
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: 
-  organizationId: 
+  projectName: CHESS_2048
+  organizationId: frozenthera
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   playerDataPath: 

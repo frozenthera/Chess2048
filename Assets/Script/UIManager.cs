@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-
-public class UIManager : MonoBehaviour
+using Unity.Netcode;
+public class UIManager : NetworkBehaviour
 {
     public static UIManager Inst;
 
@@ -41,12 +41,14 @@ public class UIManager : MonoBehaviour
             GameManager.Inst.ResetGame();
             ResultPanel.gameObject.SetActive(false);
         });
+
+        GameManager.Inst.PlayerActed.OnValueChanged += SetTurnEndButton;
     }
 
-    public void SetTurnEndButton(bool avail)
+    public void SetTurnEndButton(bool previous, bool current)
     {
         Image img = turnEndButton.GetComponent<Image>();
-        if(avail)
+        if(current)
         {
             img.color = Color.green;
         }
@@ -66,22 +68,22 @@ public class UIManager : MonoBehaviour
 
     public void UpdateNextPiece()
     {
-        if(GameManager.Inst.WHITE_Idx > 15)
+        if(GameManager.Inst.WHITE_Idx.Value > 15)
         {
             whiteNextSprite.sprite = null;
         }
         else
         {
-            whiteNextSprite.sprite = whiteSpriteList[(int)GameManager.Inst.spawnList[GameManager.Inst.WHITE_Idx]];
+            whiteNextSprite.sprite = whiteSpriteList[(int)GameManager.Inst.spawnList[GameManager.Inst.WHITE_Idx.Value]];
         }
 
-        if(GameManager.Inst.BLACK_Idx > 15)
+        if(GameManager.Inst.BLACK_Idx.Value > 15)
         {
             blackNextSprite.sprite = null;
         }
         else
         {
-            blackNextSprite.sprite = blackSpriteList[(int)GameManager.Inst.spawnList[GameManager.Inst.BLACK_Idx]];
+            blackNextSprite.sprite = blackSpriteList[(int)GameManager.Inst.spawnList[GameManager.Inst.BLACK_Idx.Value]];
         }        
     }
 
@@ -99,7 +101,8 @@ public class UIManager : MonoBehaviour
     public void ResetUI()
     {
         UpdateTurnEndButton();
-        SetTurnEndButton(false);
+        GameManager.Inst.PlayerActed.Value = false;
+        // SetTurnEndButton(true, false);
         UpdateNextPiece();
     }
 }
