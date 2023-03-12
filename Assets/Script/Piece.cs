@@ -2,15 +2,23 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
-public abstract class Piece : NetworkBehaviour
+public abstract class Piece : NetworkBehaviour, INetworkSerializable
 {
-    public PieceEnum pieceClass;
+    public NetworkVariable<PieceEnum> pieceClass;
     public PlayerEnum player;
-    public Coordinate curCoord;
+    public int curCoordX;
+    public int curCoordY;
     [SerializeField] Sprite[] spriteList = new Sprite[2];
 
     protected List<Coordinate> diff;
     protected int range;
+
+    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+    {
+        serializer.SerializeValue<PlayerEnum>(ref player);
+        serializer.SerializeValue(ref curCoordX);
+        serializer.SerializeValue(ref curCoordY);
+    }
 
     public virtual List<Coordinate> ReachableCoordinate()
     {
@@ -20,7 +28,7 @@ public abstract class Piece : NetworkBehaviour
         {
             for(int j=1; j<range+1; j++)
             {
-                Coordinate temp = curCoord + diff[i]*j;
+                Coordinate temp = new Coordinate(curCoordX, curCoordY) + diff[i]*j;
                 if(temp.X < 0 || temp.X > 3 || temp.Y < 0 || temp.Y > 3) continue;
 
                 if(GameManager.Inst.isTherePieceWithOppo(temp, player))
@@ -53,8 +61,8 @@ public abstract class Piece : NetworkBehaviour
 
     private void OnMouseDown()
     {
-        if(GameManager.Inst.player != player) return;
-        if(GameManager.Inst.PlayerActed.Value) return;
+        if(GameManager.Inst.curPlayer.Value != player) return;
+        if(GameManager.Inst.PlayerActed) return;
         if(GameManager.Inst.TurnPhase > 2) return;
 
         if(GameManager.Inst.isHighlighted)
@@ -78,5 +86,4 @@ public abstract class Piece : NetworkBehaviour
         }
         Board.Inst.PaintReachable(ReachableCoordinate());
     }
-
 }

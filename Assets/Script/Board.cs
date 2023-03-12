@@ -28,8 +28,8 @@ public class Board : NetworkBehaviour
                 GameManager.Inst.boardState[i,j].GetComponent<NetworkObject>().Spawn();
 
                 GameManager.Inst.boardState[i,j].name = i + ", " + j;
-                GameManager.Inst.boardState[i,j].coord = new Coordinate(i,j);
-                GameManager.Inst.boardState[i,j].curCheckerPlayer = PlayerEnum.EMPTY;
+                GameManager.Inst.boardState[i,j].coord.Value = new Coordinate(i,j);
+                GameManager.Inst.boardState[i,j].curCheckerPlayer.Value = PlayerEnum.EMPTY;
                 GameManager.Inst.boardState[i,j].curPiece = null;
 
                 if((i+j) % 2 == 0)
@@ -56,7 +56,7 @@ public class Board : NetworkBehaviour
             {
                 if(i+_dx < 0 || i+_dx > 3 || j+_dy < 0 || j+_dy > 3) continue;
 
-                if(GameManager.Inst.boardState[i,j].curCheckerPlayer == PlayerEnum.EMPTY) continue;
+                if(GameManager.Inst.boardState[i,j].curCheckerPlayer.Value == PlayerEnum.EMPTY) continue;
                 
                 int temp = 1;
                 while(i+_dx*temp > -1 && i+_dx*temp < 4 && j+_dy*temp > -1 && j+_dy*temp <4 && GameManager.Inst.boardState[i+_dx*temp, j+_dy*temp].curPiece == null)
@@ -69,14 +69,14 @@ public class Board : NetworkBehaviour
                 int changedY = j+_dy*(temp-1);
 
                 if(changedX+_dx < 0 || changedX+_dx > 3 || changedY+_dy < 0 || changedY+_dy > 3) continue;
-                if(GameManager.Inst.boardState[changedX+_dx, changedY+_dy].curPiece.pieceClass != GameManager.Inst.boardState[changedX, changedY].curPiece.pieceClass) continue;
+                if(GameManager.Inst.boardState[changedX+_dx, changedY+_dy].curPiece.Value.pieceClass != GameManager.Inst.boardState[changedX, changedY].curPiece.Value.pieceClass) continue;
 
                 if(GameManager.Inst.boardState[changedX+_dx, changedY+_dy].curCheckerPlayer == GameManager.Inst.boardState[changedX, changedY].curCheckerPlayer)
                 {
-                    GameManager.Inst.boardState[changedX+_dx, changedY+_dy].curPiece = Merge(GameManager.Inst.boardState[changedX+_dx, changedY+_dy].curPiece, GameManager.Inst.boardState[changedX, changedY].curPiece);
+                    GameManager.Inst.boardState[changedX+_dx, changedY+_dy].curPiece.Value = Merge(GameManager.Inst.boardState[changedX+_dx, changedY+_dy].curPiece.Value, GameManager.Inst.boardState[changedX, changedY].curPiece.Value);
 
                     GameManager.Inst.boardState[changedX, changedY].curPiece = null;
-                    GameManager.Inst.boardState[changedX, changedY].curCheckerPlayer = PlayerEnum.EMPTY;
+                    GameManager.Inst.boardState[changedX, changedY].curCheckerPlayer.Value = PlayerEnum.EMPTY;
 
                 }
                 // else
@@ -96,14 +96,15 @@ public class Board : NetworkBehaviour
     /// <param name="p2">Merging piece</param>
     public Piece Merge(Piece p1, Piece p2)
     {
-        GameObject go = GameManager.Inst.GetObjectByPieceEnum(p1.pieceClass + 1);
+        GameObject go = GameManager.Inst.GetObjectByPieceEnum(p1.pieceClass.Value + 1);
         Piece res = null;
         if(go != null)
         {
             res = Instantiate(go, p1.transform.position, Quaternion.identity, GameManager.Inst.Pieces).GetComponent<Piece>();
             res.GetComponent<NetworkObject>().Spawn();
 
-            res.curCoord = p1.curCoord;
+            res.curCoordX = p1.curCoordX;
+            res.curCoordY = p1.curCoordY;
             res.Initialize(p1.player);
         }
         p1.GetComponent<NetworkObject>().Despawn();

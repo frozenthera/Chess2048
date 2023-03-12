@@ -16,7 +16,7 @@ public class PlayerController : NetworkBehaviour
            return;
         }
 
-        if(GameManager.Inst.PlayerActed.Value) return;
+        if(GameManager.Inst.PlayerActed) return;
 
         if(GameManager.Inst.TurnPhase > 0) return;
 
