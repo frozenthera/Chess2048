@@ -2,63 +2,43 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
-public class Checker : NetworkBehaviour
+public class Checker : MonoBehaviour
 {
-    public NetworkVariable<PlayerEnum> curCheckerPlayer = new();
-    public NetworkVariable<Coordinate> coord = new();
-    public Piece curPiece;
     private SpriteRenderer sp;
-    
+    public Coordinate coord;
+    [SerializeField] private SpriteRenderer pieceRenderer;
+    [SerializeField] private List<Sprite> whitePieceSprite;
+    [SerializeField] private List<Sprite> blackPieceSprite;
+
     private void Start()
     {
         sp = GetComponent<SpriteRenderer>();
     }
 
-    /// <summary>
-    /// Use only when dest is empty
-    /// </summary>
-    /// <param name="dest"></param>
-    public void MovePiece(Checker dest)
-    {
-        if(dest == this) return;
-
-        curPiece.transform.position = dest.transform.position;
-        curPiece.curCoord = dest.coord;
-
-        dest.curCheckerPlayer = curCheckerPlayer;
-        dest.curPiece = curPiece;
-
-        curCheckerPlayer.Value = PlayerEnum.EMPTY;
-        curPiece = null;
-    }
-
-    public void RemovePiece()
-    {
-        curPiece.GetComponent<NetworkObject>().Despawn();
-        // Destroy(curPiece.gameObject);
-
-        curCheckerPlayer.Value = PlayerEnum.EMPTY;
-        curPiece = null;
-    }
-
     public void OnMouseDown()
+    {
+        ClickMovablePiece();
+        ClickVoidChecker();
+    }
+
+    public void ClickVoidChecker()
     {
         if(GameManager.Inst.PlayerActed.Value || GameManager.Inst.isGameOver) return;
 
-        if(GameManager.Inst.curSelected != null && GameManager.Inst.TurnPhase < 2)
+        if(GameManager.Inst.curSelected != Coordinate.none && GameManager.Inst.TurnPhase < 2)
         {
-            Piece temp = GameManager.Inst.curSelected;
+            Coordinate temp = GameManager.Inst.curSelected;
             foreach(var item in GameManager.Inst.curMovable)
             {
-                if(item.X == this.coord.Value.X && item.Y == this.coord.Value.Y)
+                if(item.X == this.coord.X && item.Y == this.coord.Y)
                 {
-                    if(GameManager.Inst.boardState[item.X, item.Y].curCheckerPlayer.Value != PlayerEnum.EMPTY)
+                    if(GameManager.Inst.boardPlayerState.Value[item.X, item.Y] != PlayerEnum.EMPTY)
                     {
                         GameManager.Inst.boardState[item.X, item.Y].RemovePiece();
                     }
-                    GameManager.Inst.boardState[temp.curCoord.Value.X, temp.curCoord.Value.Y].MovePiece(this);
+                    GameManager.Inst.boardState[temp.X, temp.Y].MovePiece(this);
                     Board.Inst.ResetPainted();
-                    GameManager.Inst.curSelected = null;
+                    GameManager.Inst.curSelected = new Coordinate(-1, -1);
                     GameManager.Inst.curMovable = null;
 
                     GameManager.Inst.TurnPhase = 2;
@@ -67,17 +47,17 @@ public class Checker : NetworkBehaviour
             return;
         }
 
-        if(curCheckerPlayer.Value == PlayerEnum.EMPTY && GameManager.Inst.TurnPhase < 3)
+        if(GameManager.Inst.GetPlayerState(coord) == PlayerEnum.EMPTY && GameManager.Inst.TurnPhase < 3)
         {
-            if(GameManager.Inst.player.Value == PlayerEnum.WHITE)
+            if(GameManager.Inst.curPlayer.Value == PlayerEnum.WHITE)
             {
                 if(GameManager.Inst.WHITE_Idx.Value > 15) return;
-                Spawn(GameManager.Inst.spawnList[GameManager.Inst.WHITE_Idx.Value++]);
+                SetPiece(GameManager.Inst.spawnList[GameManager.Inst.WHITE_Idx.Value++], PlayerEnum.WHITE);
             }
             else
             {
                 if(GameManager.Inst.BLACK_Idx.Value > 15) return;
-                Spawn(GameManager.Inst.spawnList[GameManager.Inst.BLACK_Idx.Value++]);
+                SetPiece(GameManager.Inst.spawnList[GameManager.Inst.BLACK_Idx.Value++], PlayerEnum.BLACK);
             }
 
             GameManager.Inst.PlayerActed.Value = true;
@@ -87,19 +67,73 @@ public class Checker : NetworkBehaviour
         }
     }
 
-    private void Spawn(PieceEnum pieceEnum)
+    public void ClickMovablePiece()
     {
-        GameObject go = GameManager.Inst.GetObjectByPieceEnum(pieceEnum);
-        curPiece = Instantiate(go, transform.position, Quaternion.identity, GameManager.Inst.Pieces).GetComponent<Piece>();
-        curPiece.GetComponent<NetworkObject>().Spawn();
+        if(GameManager.Inst.curPlayer.Value != GameManager.Inst.GetPlayerState(coord)) return;
+        if(GameManager.Inst.PlayerActed.Value) return;
+        if(GameManager.Inst.TurnPhase > 2) return;
 
-        curCheckerPlayer = GameManager.Inst.player;
-        curPiece.curCoord = coord;
-        curPiece.Initialize(GameManager.Inst.player.Value);
+        if(GameManager.Inst.isSelectedAvailable())
+        {
+            GameManager.Inst.curMovable = null;
+            Board.Inst.ResetPainted();
+        } 
+
+        if(GameManager.Inst.GetPieceState(GameManager.Inst.curSelected) == GameManager.Inst.GetPieceState(coord)) 
+        {
+            GameManager.Inst.curSelected = Coordinate.none;
+            return;
+        }
+
+        GameManager.Inst.curSelected = coord;
+        // GameManager.Inst.curMovable = ReachableCoordinate();
+        if(GameManager.Inst.curMovable.Count == 0)
+        {
+            GameManager.Inst.curSelected = Coordinate.none;
+            return;
+        }
+        // Board.Inst.PaintReachable(ReachableCoordinate());
     }
 
-    public void Paint(Color color)
+    public void SetPiece(PieceEnum pieceEnum, PlayerEnum playerEnum)
+    {
+        GameManager.Inst.SetPieceState(coord, pieceEnum);
+        GameManager.Inst.SetPlayerState(coord, playerEnum);
+
+        PaintPiece();
+    }
+
+    public void RemovePiece()
+    {
+        GameManager.Inst.SetPieceState(coord, PieceEnum.NULL);
+        GameManager.Inst.SetPlayerState(coord, PlayerEnum.EMPTY);
+
+        PaintPiece();
+    }
+
+    public void MovePiece(Checker dest)
+    {
+        if(dest == this) return;
+
+        dest.SetPiece(GameManager.Inst.GetPieceState(coord), GameManager.Inst.GetPlayerState(coord));
+        RemovePiece();
+
+        dest.PaintPiece();
+        PaintPiece();
+    }
+
+    public void PaintBackground(Color color)
     {
         sp.color = color;
+    }
+
+    public void PaintPiece()
+    {
+        if(GameManager.Inst.GetPlayerState(coord) == PlayerEnum.EMPTY) pieceRenderer.sprite = null;
+        
+        if(GameManager.Inst.GetPlayerState(coord) == PlayerEnum.WHITE)
+            pieceRenderer.sprite = whitePieceSprite[(int)GameManager.Inst.GetPieceState(coord)];
+
+        else pieceRenderer.sprite = blackPieceSprite[(int)GameManager.Inst.GetPieceState(coord)]; 
     }
 }

@@ -5,7 +5,7 @@ using UnityEngine;
 public class King : Piece
 {
 
-    protected override void _Initianlize()
+    protected override void Initianlize()
     {
         diff = new List<Coordinate>()
         {
@@ -22,11 +22,9 @@ public class King : Piece
         range = 1;
     }
 
-    public override void OnDestroy()
+    public override void OnRemoved(PlayerEnum playerEnum)
     {
-        base.OnDestroy();
-        
         if(GameManager.Inst.isGameOver) return;
-        GameManager.Inst.GameOver(player.Value == PlayerEnum.WHITE ? PlayerEnum.BLACK : PlayerEnum.WHITE);
+        GameManager.Inst.GameOver(playerEnum == PlayerEnum.WHITE ? PlayerEnum.BLACK : PlayerEnum.WHITE); 
     }
 }

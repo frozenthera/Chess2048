@@ -7,6 +7,7 @@ public struct Coordinate : INetworkSerializable
 {
     public int X;
     public int Y;
+    public static Coordinate none = new Coordinate(-1, -1);
 
     public Coordinate(int x, int y)
     {
@@ -35,8 +36,28 @@ public struct Coordinate : INetworkSerializable
         return new Coordinate(p1.X*num, p1.Y*num);
     }
 
+    public static bool operator==(Coordinate p1, Coordinate p2)
+    {
+        return p1.X == p2.X && p1.Y == p2.Y;
+    }
+
+    public static bool operator!=(Coordinate p1, Coordinate p2)
+    {
+        return p1.X != p2.X || p1.Y != p2.Y;
+    }
+
     public override string ToString()
     {
         return $"X_{X}, Y_{Y}";
+    }
+
+    public override bool Equals(object obj)
+    {
+        return base.Equals(obj);
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
     }
 }

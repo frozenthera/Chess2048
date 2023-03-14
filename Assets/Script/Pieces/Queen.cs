@@ -5,7 +5,7 @@ using UnityEngine;
 public class Queen : Piece
 {
 
-    protected override void _Initianlize()
+    protected override void Initianlize()
     {
         diff = new List<Coordinate>()
         {

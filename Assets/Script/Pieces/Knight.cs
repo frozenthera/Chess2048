@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Knight : Piece
 {
-    protected override void _Initianlize()
+    protected override void Initianlize()
     {
         diff = new List<Coordinate>()
         {

@@ -89,7 +89,7 @@ public class UIManager : NetworkBehaviour
 
     public void UpdateTurnEndButton()
     {
-        turnPlayerInfoText.text = "Current Player\n" + GameManager.Inst.player.Value.ToString();
+        turnPlayerInfoText.text = "Current Player\n" + GameManager.Inst.curPlayer.Value.ToString();
     }
 
     public void SetResultPanel(PlayerEnum winner)

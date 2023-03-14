@@ -24,18 +24,14 @@ public class Board : NetworkBehaviour
             for(int j=0; j<4; j++)
             {
                 Vector2 pos = new Vector2(i, j);
-                GameManager.Inst.boardState[i,j] = Instantiate(squarePrefab, pos, Quaternion.identity, transform).GetComponent<Checker>();
-                GameManager.Inst.boardState[i,j].name = i + ", " + j;
-                GameManager.Inst.boardState[i,j].curPiece = null;
+                Checker checker = GameManager.Inst.boardState[i,j] = Instantiate(squarePrefab, pos, Quaternion.identity, transform).GetComponent<Checker>();
+                checker.name = i + ", " + j;
                 if((i+j) % 2 == 0)
                 {
-                    GameManager.Inst.boardState[i,j].GetComponent<SpriteRenderer>().color = new Color(60/255f,60/255f,60/255f);
+                    checker.GetComponent<SpriteRenderer>().color = new Color(60/255f,60/255f,60/255f);
                 }
-
-                GameManager.Inst.boardState[i,j].GetComponent<NetworkObject>().Spawn();  
-                
-                GameManager.Inst.boardState[i,j].coord.Value = new Coordinate(i, j);
-                GameManager.Inst.boardState[i,j].curCheckerPlayer.Value = PlayerEnum.EMPTY;
+                checker.GetComponent<NetworkObject>().Spawn();
+                checker.transform.parent = this.transform;
             }
         }
 
@@ -56,10 +52,10 @@ public class Board : NetworkBehaviour
             {
                 if(i+_dx < 0 || i+_dx > 3 || j+_dy < 0 || j+_dy > 3) continue;
 
-                if(GameManager.Inst.boardState[i,j].curCheckerPlayer.Value == PlayerEnum.EMPTY) continue;
+                if(GameManager.Inst.boardPlayerState.Value[i,j] == PlayerEnum.EMPTY) continue;
                 
                 int temp = 1;
-                while(i+_dx*temp > -1 && i+_dx*temp < 4 && j+_dy*temp > -1 && j+_dy*temp <4 && GameManager.Inst.boardState[i+_dx*temp, j+_dy*temp].curPiece == null)
+                while(i+_dx*temp > -1 && i+_dx*temp < 4 && j+_dy*temp > -1 && j+_dy*temp <4 && GameManager.Inst.boardPieceState.Value[i+_dx*temp, j+_dy*temp] == PieceEnum.NULL)
                 {
                     temp++;
                 }
@@ -69,14 +65,14 @@ public class Board : NetworkBehaviour
                 int changedY = j+_dy*(temp-1);
 
                 if(changedX+_dx < 0 || changedX+_dx > 3 || changedY+_dy < 0 || changedY+_dy > 3) continue;
-                if(GameManager.Inst.boardState[changedX+_dx, changedY+_dy].curPiece.pieceClass != GameManager.Inst.boardState[changedX, changedY].curPiece.pieceClass) continue;
+                if(GameManager.Inst.boardPieceState.Value[changedX+_dx, changedY+_dy] != GameManager.Inst.boardPieceState.Value[changedX, changedY]) continue;
 
-                if(GameManager.Inst.boardState[changedX+_dx, changedY+_dy].curCheckerPlayer == GameManager.Inst.boardState[changedX, changedY].curCheckerPlayer)
+                if(GameManager.Inst.boardPlayerState.Value[changedX+_dx, changedY+_dy] == GameManager.Inst.boardPlayerState.Value[changedX, changedY])
                 {
-                    GameManager.Inst.boardState[changedX+_dx, changedY+_dy].curPiece = Merge(GameManager.Inst.boardState[changedX+_dx, changedY+_dy].curPiece, GameManager.Inst.boardState[changedX, changedY].curPiece);
+                    Merge(new Coordinate(changedX+_dx, changedY+_dy), new Coordinate(changedX, changedY));
 
-                    GameManager.Inst.boardState[changedX, changedY].curPiece = null;
-                    GameManager.Inst.boardState[changedX, changedY].curCheckerPlayer.Value = PlayerEnum.EMPTY;
+                    GameManager.Inst.boardPieceState.Value[changedX, changedY] = PieceEnum.NULL;
+                    GameManager.Inst.boardPlayerState.Value[changedX, changedY] = PlayerEnum.EMPTY;
 
                 }
                 // else
@@ -94,24 +90,11 @@ public class Board : NetworkBehaviour
     /// </summary>
     /// <param name="p1">Merged piece</param>
     /// <param name="p2">Merging piece</param>
-    public Piece Merge(Piece p1, Piece p2)
+    public void Merge(Coordinate p1, Coordinate p2)
     {
-        GameObject go = GameManager.Inst.GetObjectByPieceEnum(p1.pieceClass + 1);
-        Piece res = null;
-        if(go != null)
-        {
-            res = Instantiate(go, p1.transform.position, Quaternion.identity, GameManager.Inst.Pieces).GetComponent<Piece>();
-            res.GetComponent<NetworkObject>().Spawn();
-
-            res.curCoord = p1.curCoord;
-            res.Initialize(p1.player.Value);
-        }
-        p1.GetComponent<NetworkObject>().Despawn();
-        p2.GetComponent<NetworkObject>().Despawn();
-        // Destroy(p1.gameObject);
-        // Destroy(p2.gameObject);
-
-        return res;
+        GameManager.Inst.SetPlayerState(p2, PlayerEnum.EMPTY);
+        GameManager.Inst.SetPieceState(p1, GameManager.Inst.boardPieceState.Value[p1.X, p2.Y] + 1);
+        GameManager.Inst.SetPieceState(p2, PieceEnum.NULL);
     }
 
     public void PaintReachable(List<Coordinate> coordList)
@@ -119,7 +102,7 @@ public class Board : NetworkBehaviour
         if(coordList == null) return;
         foreach(var item in coordList)
         {
-            GameManager.Inst.boardState[item.X, item.Y].Paint(Color.green);
+            GameManager.Inst.boardState[item.X, item.Y].PaintBackground(Color.green);
         }
     }
 
@@ -129,8 +112,20 @@ public class Board : NetworkBehaviour
         {
             for(int j=0; j<4; j++)
             {
-                GameManager.Inst.boardState[i,j].Paint( (i+j)%2==0 ? new Color(60/255f,60/255f,60/255f) : new Color(200/255f,200/255f,200/255f));
+                GameManager.Inst.boardState[i,j].PaintBackground( (i+j)%2==0 ? new Color(60/255f,60/255f,60/255f) : new Color(200/255f,200/255f,200/255f));
             }
         }
     }
+
+    public void UpdatePiecePaint()
+    {
+        for(int i=0; i<4; i++)
+        {
+            for(int j=0; j<4; j++)
+            {
+                GameManager.Inst.boardState[i,j].PaintPiece();
+            }
+        }
+    }
+
 }

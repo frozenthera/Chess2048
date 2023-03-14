@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Pawn : Piece
 {
-    protected override void _Initianlize()
+    protected override void Initianlize()
     {
         diff = new List<Coordinate>()
         {
@@ -17,7 +17,7 @@ public class Pawn : Piece
         range = 1;
     }
 
-    public override List<Coordinate> ReachableCoordinate()
+    public override List<Coordinate> ReachableCoordinate(Coordinate curCoord, PlayerEnum player)
     {
         List<Coordinate> res = new();
         
@@ -25,10 +25,10 @@ public class Pawn : Piece
         {
             for(int j=1; j<range+1; j++)
             {
-                Coordinate temp = curCoord.Value + diff[i]*j;
+                Coordinate temp = curCoord + diff[i]*j;
                 if(temp.X < 0 || temp.X > 3 || temp.Y < 0 || temp.Y > 3) continue;
 
-                if(GameManager.Inst.isTherePieceWithOppo(temp, player.Value))
+                if(GameManager.Inst.isTherePieceWithOppo(temp, player))
                 {
                     res.Add(temp);
                     break;
