@@ -16,6 +16,7 @@ public class GameManager : NetworkBehaviour
     
     public NetworkVariable<PlayerEnum[,]> boardPlayerState = new();
     public NetworkVariable<PieceEnum[,]> boardPieceState = new();
+    public NetworkVariable<List<Piece>> boardPieceList = new();
     public NetworkVariable<int> WHITE_Idx = new NetworkVariable<int>(0);
     public NetworkVariable<int> BLACK_Idx = new NetworkVariable<int>(0);
     public NetworkVariable<bool> PlayerActed = new NetworkVariable<bool>(false);
