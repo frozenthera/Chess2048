@@ -26,6 +26,7 @@ public class Board : NetworkBehaviour
                 Vector2 pos = new Vector2(i, j);
                 Checker checker = GameManager.Inst.boardState[i,j] = Instantiate(squarePrefab, pos, Quaternion.identity, transform).GetComponent<Checker>();
                 checker.name = i + ", " + j;
+                checker.coord = new NetworkVariable<Coordinate>(new Coordinate(i,j));
                 if((i+j) % 2 == 0)
                 {
                     checker.GetComponent<SpriteRenderer>().color = new Color(60/255f,60/255f,60/255f);
@@ -41,8 +42,12 @@ public class Board : NetworkBehaviour
 
     int[] dx = new int[]{0, 1, 0, -1};
     int[] dy = new int[]{-1, 0, 1, 0};
-    public void Slide(Direction dir)
+
+    [ServerRpc]
+    public void SlideServerRpc(Direction dir)
     {
+        GameManager.Inst.TurnPhase = 1;
+
         int _dx = dx[(int)dir];
         int _dy = dy[(int)dir];
 
@@ -52,61 +57,49 @@ public class Board : NetworkBehaviour
             {
                 if(i+_dx < 0 || i+_dx > 3 || j+_dy < 0 || j+_dy > 3) continue;
 
-                if(GameManager.Inst.boardPlayerState.Value[i,j] == PlayerEnum.EMPTY) continue;
+                if(GameManager.Inst.boardPlayerState[i, j] == PlayerEnum.EMPTY) continue;
                 
                 int temp = 1;
-                while(i+_dx*temp > -1 && i+_dx*temp < 4 && j+_dy*temp > -1 && j+_dy*temp <4 && GameManager.Inst.boardPieceState.Value[i+_dx*temp, j+_dy*temp] == PieceEnum.NULL)
+                while(i+_dx*temp > -1 && i+_dx*temp < 4 && j+_dy*temp > -1 && j+_dy*temp < 4 && GameManager.Inst.boardPieceState[i+_dx*temp, j+_dy*temp] == PieceEnum.NONE)
                 {
                     temp++;
                 }
-                GameManager.Inst.boardState[i,j].MovePiece(GameManager.Inst.boardState[i+_dx*(temp-1), j+_dy*(temp-1)]);
+                GameManager.Inst.MovePiece(i, j, i+_dx*(temp-1), j+_dy*(temp-1));
                 
                 int changedX = i+_dx*(temp-1);
                 int changedY = j+_dy*(temp-1);
 
                 if(changedX+_dx < 0 || changedX+_dx > 3 || changedY+_dy < 0 || changedY+_dy > 3) continue;
-                if(GameManager.Inst.boardPieceState.Value[changedX+_dx, changedY+_dy] != GameManager.Inst.boardPieceState.Value[changedX, changedY]) continue;
+                if(GameManager.Inst.boardPieceState[changedX+_dx, changedY+_dy] != GameManager.Inst.boardPieceState[changedX, changedY]) continue;
 
-                if(GameManager.Inst.boardPlayerState.Value[changedX+_dx, changedY+_dy] == GameManager.Inst.boardPlayerState.Value[changedX, changedY])
+                if(GameManager.Inst.boardPlayerState[changedX+_dx, changedY+_dy] == GameManager.Inst.boardPlayerState[changedX, changedY])
                 {
-                    Merge(new Coordinate(changedX+_dx, changedY+_dy), new Coordinate(changedX, changedY));
+                    GameManager.Inst.SetPiece(changedX+_dx, changedY+_dy, GameManager.Inst.GetPlayerState(new Coordinate(changedX+_dx, changedY+_dy)), GameManager.Inst.boardPieceState[changedX, changedY] + 1);
+                    // GameManager.Inst.boardPieceState[changedX+_dx][changedY+_dy] = ;
+                    // GameManager.Inst.boardPlayerState[changedX+_dx][changedY+_dy] = ;
 
-                    GameManager.Inst.boardPieceState.Value[changedX, changedY] = PieceEnum.NULL;
-                    GameManager.Inst.boardPlayerState.Value[changedX, changedY] = PlayerEnum.EMPTY;
-
+                    GameManager.Inst.RemovePiece(changedX, changedY);
+                    // GameManager.Inst.boardPieceState[changedX][changedY] = PieceEnum.NONE;
+                    // GameManager.Inst.boardPlayerState[changedX][changedY] = PlayerEnum.EMPTY;
                 }
-                // else
-                // {
-                //     //Destroying cruncing piece
-                //     GameManager.Inst.boardState[changedX+_dx, changedY+_dy].RemovePiece();
-                //     GameManager.Inst.boardState[changedX, changedY].MovePiece(GameManager.Inst.boardState[changedX+_dx, changedY+_dy]);
-                // }
             }
         }
+
+        UpdateEveryPieceClientRpc();
     }
 
-    /// <summary>
-    /// Merge p1 and p2 into next step of piece at p1's position
-    /// </summary>
-    /// <param name="p1">Merged piece</param>
-    /// <param name="p2">Merging piece</param>
-    public void Merge(Coordinate p1, Coordinate p2)
+    [ClientRpc]
+    public void PaintReachableClientRpc(Coordinate[] coordList)
     {
-        GameManager.Inst.SetPlayerState(p2, PlayerEnum.EMPTY);
-        GameManager.Inst.SetPieceState(p1, GameManager.Inst.boardPieceState.Value[p1.X, p2.Y] + 1);
-        GameManager.Inst.SetPieceState(p2, PieceEnum.NULL);
-    }
-
-    public void PaintReachable(List<Coordinate> coordList)
-    {
-        if(coordList == null) return;
+        if(coordList.Length == 0) return;
         foreach(var item in coordList)
         {
             GameManager.Inst.boardState[item.X, item.Y].PaintBackground(Color.green);
         }
     }
 
-    public void ResetPainted()
+    [ClientRpc]
+    public void ResetPaintedClientRpc()
     {
         for(int i=0; i<4; i++)
         {
@@ -117,7 +110,8 @@ public class Board : NetworkBehaviour
         }
     }
 
-    public void UpdatePiecePaint()
+    [ClientRpc]
+    public void UpdateEveryPieceClientRpc()
     {
         for(int i=0; i<4; i++)
         {
@@ -128,4 +122,9 @@ public class Board : NetworkBehaviour
         }
     }
 
+    [ClientRpc]
+    public void UpdateSinglePieceClientRpc(Coordinate coor)
+    {
+        GameManager.Inst.boardState[coor.X, coor.Y].PaintPiece();
+    }
 }

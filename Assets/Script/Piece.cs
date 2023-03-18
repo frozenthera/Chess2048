@@ -3,40 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public struct Piece : INetworkSerializable
+public class Piece
 {
-    //should sync these variables
-    public PieceEnum pieceClass;
-    public PlayerEnum player;
-    public Coordinate curCoord;
-
-    //no need to synchronize
-    public List<Coordinate> diff;
-    public int range;
-
-    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
-    {
-        serializer.SerializeValue(ref pieceClass);
-        serializer.SerializeValue(ref player);
-        serializer.SerializeValue<Coordinate>(ref curCoord);
-    }
-
-    public Piece(PieceEnum _pieceEnum, PlayerEnum _player, Coordinate _curCoord)
-    {
-        pieceClass = _pieceEnum;
-        player = _player;
-        curCoord = _curCoord;
-        diff = SetDiff(_pieceEnum);
-        range = SetRange(_pieceEnum);
-    }
-
-    public List<Coordinate> ReachableCoordinate(Coordinate curCoord, PlayerEnum player)
+    public static List<Coordinate> ReachableCoordinate(Coordinate curCoord, PlayerEnum player, PieceEnum piece)
     {
         List<Coordinate> res = new();
-
-        for(int i=0; i<diff.Count; i++)
-        {
-            for(int j=1; j<range+1; j++)
+        List<Coordinate> diff = GetDiff(piece);
+        for(int i=0; i< diff.Count; i++)
+        {   
+            for(int j=1; j< GetRange(piece)+1; j++)
             {
                 Coordinate temp = curCoord + diff[i]*j;
                 if(temp.X < 0 || temp.X > 3 || temp.Y < 0 || temp.Y > 3) continue;
@@ -61,7 +36,7 @@ public struct Piece : INetworkSerializable
 
     public void OnRemoved(PlayerEnum playerEnum){}
 
-    private static List<Coordinate> SetDiff(PieceEnum piece)
+    private static List<Coordinate> GetDiff(PieceEnum piece)
     {   
         switch(piece)
         {
@@ -136,7 +111,7 @@ public struct Piece : INetworkSerializable
         }
     }
 
-    private static int SetRange(PieceEnum piece)
+    private static int GetRange(PieceEnum piece)
     {
         switch(piece)
         {

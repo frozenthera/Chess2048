@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class Util 
 {
@@ -15,6 +16,7 @@ public enum Direction
     LEFT
 }
 
+[Serializable]
 public enum PlayerEnum
 {
     WHITE,
@@ -22,6 +24,7 @@ public enum PlayerEnum
     EMPTY
 }
 
+[Serializable]
 public enum PieceEnum
 {
     PAWN,
@@ -30,5 +33,5 @@ public enum PieceEnum
     BISHOP,
     QUEEN,
     KING,
-    NULL
+    NONE
 }

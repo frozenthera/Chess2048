@@ -5,7 +5,10 @@ using Unity.Netcode;
 public class Checker : MonoBehaviour
 {
     private SpriteRenderer sp;
-    public Coordinate coord;
+    public NetworkVariable<Coordinate> coord;
+    public int x;
+    public int y;
+
     [SerializeField] private SpriteRenderer pieceRenderer;
     [SerializeField] private List<Sprite> whitePieceSprite;
     [SerializeField] private List<Sprite> blackPieceSprite;
@@ -15,31 +18,10 @@ public class Checker : MonoBehaviour
         sp = GetComponent<SpriteRenderer>();
     }
 
-    public void SetPiece(PieceEnum pieceEnum, PlayerEnum playerEnum)
+    private void Update()
     {
-        GameManager.Inst.SetPieceState(coord, pieceEnum);
-        GameManager.Inst.SetPlayerState(coord, playerEnum);
-
-        PaintPiece();
-    }
-
-    public void RemovePiece()
-    {
-        GameManager.Inst.SetPieceState(coord, PieceEnum.NULL);
-        GameManager.Inst.SetPlayerState(coord, PlayerEnum.EMPTY);
-
-        PaintPiece();
-    }
-
-    public void MovePiece(Checker dest)
-    {
-        if(dest == this) return;
-
-        dest.SetPiece(GameManager.Inst.GetPieceState(coord), GameManager.Inst.GetPlayerState(coord));
-        RemovePiece();
-
-        dest.PaintPiece();
-        PaintPiece();
+        x = coord.Value.X;
+        y = coord.Value.Y;
     }
 
     public void PaintBackground(Color color)
@@ -49,11 +31,18 @@ public class Checker : MonoBehaviour
 
     public void PaintPiece()
     {
-        if(GameManager.Inst.GetPlayerState(coord) == PlayerEnum.EMPTY) pieceRenderer.sprite = null;
-        
-        if(GameManager.Inst.GetPlayerState(coord) == PlayerEnum.WHITE)
-            pieceRenderer.sprite = whitePieceSprite[(int)GameManager.Inst.GetPieceState(coord)];
-
-        else pieceRenderer.sprite = blackPieceSprite[(int)GameManager.Inst.GetPieceState(coord)]; 
+        // Debug.Log(this.coord.Value.ToString() + ", " + GameManager.Inst.GetPieceState(this.coord.Value) + ", " + GameManager.Inst.GetPlayerState(this.coord.Value));
+        if(GameManager.Inst.GetPlayerState(this.coord.Value) == PlayerEnum.EMPTY)
+        {
+            pieceRenderer.sprite = null;
+        } 
+        else if(GameManager.Inst.GetPlayerState(this.coord.Value) == PlayerEnum.WHITE)
+        {
+            pieceRenderer.sprite = whitePieceSprite[(int)GameManager.Inst.GetPieceState(this.coord.Value)];
+        }
+        else
+        {
+            pieceRenderer.sprite = blackPieceSprite[(int)GameManager.Inst.GetPieceState(this.coord.Value)]; 
+        } 
     }
 }

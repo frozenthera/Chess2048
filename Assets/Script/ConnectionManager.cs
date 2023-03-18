@@ -70,6 +70,7 @@ public class ConnectionManager : MonoBehaviour
         NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(serverData);
         NetworkManager.Singleton.StartHost();
 
+        GameManager.Inst.Initialize();
         Board.Inst.Initialize();
     }
 

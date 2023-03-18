@@ -2,8 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
+using System;
 
-public struct Coordinate : INetworkSerializable
+public struct Coordinate : INetworkSerializable, IEquatable<Coordinate>
 {
     public int X;
     public int Y;
@@ -59,5 +60,10 @@ public struct Coordinate : INetworkSerializable
     public override int GetHashCode()
     {
         return base.GetHashCode();
+    }
+
+    public bool Equals(Coordinate other)
+    {
+        return X == other.X && Y == other.Y;
     }
 }

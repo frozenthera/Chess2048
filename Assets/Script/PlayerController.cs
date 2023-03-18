@@ -10,7 +10,6 @@ public class PlayerController : NetworkBehaviour
         if(GameManager.Inst.isGameOver) return;
         if (!IsLocalPlayer) return;
 
-
         if(Input.GetKeyDown(KeyCode.E))
         {
            GameManager.Inst.SwapTurn();
@@ -20,85 +19,128 @@ public class PlayerController : NetworkBehaviour
 
         if(GameManager.Inst.PlayerActed.Value) return;
 
-        if(GameManager.Inst.TurnPhase > 0) return;
-
-        if (Input.GetKeyDown(KeyCode.S))
+        if(GameManager.Inst.TurnPhase < 1)
         {
-            Debug.Log("Slide Down!");
-            Board.Inst.Slide(Direction.DOWN);
-            GameManager.Inst.TurnPhase = 1;
-        }
-        else if (Input.GetKeyDown(KeyCode.D))
-        {
-            Debug.Log("Slide Right!");
-            Board.Inst.Slide(Direction.RIGHT);
-            GameManager.Inst.TurnPhase = 1;
-        }
-        else if (Input.GetKeyDown(KeyCode.W))
-        {
-            Debug.Log("Slide Up!");
-            Board.Inst.Slide(Direction.UP);
-            GameManager.Inst.TurnPhase = 1;
-        }
-        else if (Input.GetKeyDown(KeyCode.A))
-        {
-            Debug.Log("Slide Left!");
-            Board.Inst.Slide(Direction.LEFT);
-            GameManager.Inst.TurnPhase = 1;
+            if (Input.GetKeyDown(KeyCode.S))
+            {
+                Debug.Log("Slide Down!");
+                Board.Inst.SlideServerRpc(Direction.DOWN);
+                return;
+            }
+            else if (Input.GetKeyDown(KeyCode.D))
+            {
+                Debug.Log("Slide Right!");
+                Board.Inst.SlideServerRpc(Direction.RIGHT);
+                return;
+            }
+            else if (Input.GetKeyDown(KeyCode.W))
+            {
+                Debug.Log("Slide Up!");
+                Board.Inst.SlideServerRpc(Direction.UP);
+                return;
+            }
+            else if (Input.GetKeyDown(KeyCode.A))
+            {
+                Debug.Log("Slide Left!");
+                Board.Inst.SlideServerRpc(Direction.LEFT);
+                return;
+            }
         }
 
         if(Input.GetMouseButtonDown(0))
         {
-            RaycastHit hit;
-
-            if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100))
+            Vector2 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            RaycastHit2D hit = Physics2D.Raycast(pos, Vector2.zero, 0f);
+            if(hit.transform == null) return;
+            if(hit.transform.CompareTag("Checker"))
             {
-                if(hit.transform.CompareTag("Checker"))
+                if(GameManager.Inst.TurnPhase < 3)
                 {
-                    ClickMovablePiece(hit.transform.GetComponent<Checker>());
-                    ClickVoidChecker(hit.transform.GetComponent<Checker>());
+                    ClickToSpawnPieceServerRpc(hit.transform.GetComponent<Checker>().coord.Value);
+                }
+                if(GameManager.Inst.TurnPhase < 2)
+                {
+                    ClickToMovePieceServerRpc(hit.transform.GetComponent<Checker>().coord.Value);
+                    ClickMovablePieceServerRpc(hit.transform.GetComponent<Checker>().coord.Value);
                 }
             }
         }
     }
 
-    public void ClickVoidChecker(Checker dest)
+    [ServerRpc]
+    public void ClickToMovePieceServerRpc(Coordinate cor)
     {
-        if(GameManager.Inst.PlayerActed.Value || GameManager.Inst.isGameOver) return;
+        Checker dest = GameManager.Inst.boardState[cor.X, cor.Y];
+        //Piece move procedure
+        if(GameManager.Inst.curMovable == null) return;
+        if(GameManager.Inst.curMovable.Count == 0) return;
 
-        if(GameManager.Inst.curSelected != Coordinate.none && GameManager.Inst.TurnPhase < 2)
+        if(GameManager.Inst.curSelected != Coordinate.none)
         {
             Coordinate temp = GameManager.Inst.curSelected;
             foreach(var item in GameManager.Inst.curMovable)
             {
-                if(item.X == dest.coord.X && item.Y == dest.coord.Y)
+                if(item.X == dest.coord.Value.X && item.Y == dest.coord.Value.Y)
                 {
-                    if(GameManager.Inst.boardPlayerState.Value[item.X, item.Y] != PlayerEnum.EMPTY)
+                    if(GameManager.Inst.boardPlayerState[item.X, item.Y] != PlayerEnum.EMPTY)
                     {
-                        GameManager.Inst.boardState[item.X, item.Y].RemovePiece();
+                        GameManager.Inst.RemovePiece(item.X, item.Y);
                     }
-                    GameManager.Inst.boardState[temp.X, temp.Y].MovePiece(dest);
-                    Board.Inst.ResetPainted();
+                    GameManager.Inst.MovePiece(temp, cor);
+                    Board.Inst.ResetPaintedClientRpc();
                     GameManager.Inst.curSelected = new Coordinate(-1, -1);
                     GameManager.Inst.curMovable = null;
 
                     GameManager.Inst.TurnPhase = 2;
                 }
             }
+        }
+    }
+
+    [ServerRpc]
+    public void ClickMovablePieceServerRpc(Coordinate cor)
+    {
+        GameManager.Inst.curSelected = cor;
+
+        if(GameManager.Inst.curPlayer.Value != GameManager.Inst.GetPlayerState(cor)) return;
+        if(GameManager.Inst.isSelectedAvailable())
+        {
+            GameManager.Inst.curMovable = null;
+            Board.Inst.ResetPaintedClientRpc();
+        } 
+
+        if(GameManager.Inst.curSelected == cor) 
+        {
+            GameManager.Inst.curSelected = Coordinate.none;
             return;
         }
 
-        if(GameManager.Inst.GetPlayerState(dest.coord) == PlayerEnum.EMPTY && GameManager.Inst.TurnPhase < 3)
+        GameManager.Inst.curMovable = Piece.ReachableCoordinate(cor, GameManager.Inst.boardPlayerState[cor.X, cor.Y], GameManager.Inst.boardPieceState[cor.X, cor.Y]);
+        if(GameManager.Inst.curMovable.Count == 0)
+        {
+            GameManager.Inst.curSelected = Coordinate.none;
+            return;
+        }
+        Board.Inst.PaintReachableClientRpc(GameManager.Inst.curMovable.ToArray());
+    }
+
+    [ServerRpc]
+    public void ClickToSpawnPieceServerRpc(Coordinate cor)
+    {
+        Checker dest = GameManager.Inst.boardState[cor.X, cor.Y];
+        //Piece spawn procedure
+        // if(GameManager.Inst.GetPlayerState(dest.coord.Value) == PlayerEnum.EMPTY)
+        if(GameManager.Inst.boardPlayerState[cor.X, cor.Y] == PlayerEnum.EMPTY)
         {
             if(GameManager.Inst.curPlayer.Value == PlayerEnum.WHITE)
             {
                 if(GameManager.Inst.WHITE_Idx.Value > 15) return;
-                GameManager.Inst.SetPieceState(dest.coord, GameManager.Inst.spawnList[GameManager.Inst.WHITE_Idx.Value++]);
+                GameManager.Inst.SetPiece(cor, PlayerEnum.WHITE, GameManager.Inst.spawnList[GameManager.Inst.WHITE_Idx.Value++]);
             }
             else
             {
                 if(GameManager.Inst.BLACK_Idx.Value > 15) return;
-                GameManager.Inst.SetPieceState(dest.coord, GameManager.Inst.spawnList[GameManager.Inst.BLACK_Idx.Value++]);
+                GameManager.Inst.SetPiece(cor, PlayerEnum.BLACK, GameManager.Inst.spawnList[GameManager.Inst.BLACK_Idx.Value++]);
             }
 
             GameManager.Inst.PlayerActed.Value = true;
@@ -107,35 +149,4 @@ public class PlayerController : NetworkBehaviour
             UIManager.Inst.UpdateNextPiece();
         }
     }
-
-    public void ClickMovablePiece(Checker dest)
-    {
-        if(GameManager.Inst.curPlayer.Value != GameManager.Inst.GetPlayerState(dest.coord)) return;
-        if(GameManager.Inst.PlayerActed.Value) return;
-        if(GameManager.Inst.TurnPhase > 2) return;
-
-        if(GameManager.Inst.isSelectedAvailable())
-        {
-            GameManager.Inst.curMovable = null;
-            Board.Inst.ResetPainted();
-        } 
-
-        if(GameManager.Inst.GetPieceState(GameManager.Inst.curSelected) == GameManager.Inst.GetPieceState(coord)) 
-        {
-            GameManager.Inst.curSelected = Coordinate.none;
-            return;
-        }
-
-        GameManager.Inst.curSelected = coord;
-        // GameManager.Inst.curMovable = ReachableCoordinate();
-        if(GameManager.Inst.curMovable.Count == 0)
-        {
-            GameManager.Inst.curSelected = Coordinate.none;
-            return;
-        }
-        // Board.Inst.PaintReachable(ReachableCoordinate());
-    }
-
-
 }
- 
