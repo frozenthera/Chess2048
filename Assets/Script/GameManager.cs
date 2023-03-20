@@ -12,11 +12,11 @@ public class GameManager : NetworkBehaviour
 
     public NetworkVariable<PlayerEnum> curPlayer = new NetworkVariable<PlayerEnum>(PlayerEnum.BLACK);
 
-    public Checker[,] boardState;
+    public Checker[,] boardState = new Checker[4,4];
     public PlayerEnum[,] boardPlayerState;
     public PieceEnum[,] boardPieceState;
 
-    public NetworkVariable<List<Piece>> boardPieceList;
+    // public NetworkVariable<List<Piece>> boardPieceList;
     public NetworkVariable<int> WHITE_Idx = new NetworkVariable<int>(0);
     public NetworkVariable<int> BLACK_Idx = new NetworkVariable<int>(0);
     public NetworkVariable<bool> PlayerActed = new NetworkVariable<bool>(false);
@@ -135,7 +135,7 @@ public class GameManager : NetworkBehaviour
 
     public PieceEnum GetPieceState(Coordinate coord)
     {
-        Debug.Log(coord.ToString());
+        // Debug.Log(coord.ToString());
         return boardPieceState[coord.X, coord.Y];
     }
 
@@ -144,28 +144,33 @@ public class GameManager : NetworkBehaviour
         return curSelected.X > -1 && curSelected.X < 4 && curSelected.Y > -1 && curSelected.Y < 4;
     }
 
-    public void RemovePiece(int x, int y) => RemovePiece(new Coordinate(x, y));
-    public void RemovePiece(Coordinate cor)
+    //Should only call from Server-Side
+    public void RemovePiece(Vector2Int cor)
     {
-        boardPieceState[cor.X, cor.Y] = PieceEnum.NONE;
-        boardPlayerState[cor.X, cor.Y] = PlayerEnum.EMPTY;
-        Board.Inst.UpdateSinglePieceClientRpc(cor);
+        boardState[cor.x, cor.y].player.Value = PlayerEnum.EMPTY;
+        boardState[cor.x, cor.y].piece.Value = PieceEnum.NONE;  
+        boardPieceState[cor.x, cor.y] = PieceEnum.NONE;
+        boardPlayerState[cor.x, cor.y] = PlayerEnum.EMPTY;
+        // Board.Inst.UpdateSinglePieceClientRpc(new Vector2Int(cor.X, cor.Y));
     }
 
-    public void SetPiece(int x, int y, PlayerEnum playerEnum, PieceEnum pieceEnum) => SetPiece(new Coordinate(x,y), playerEnum, pieceEnum);
-    public void SetPiece(Coordinate cor, PlayerEnum playerEnum, PieceEnum pieceEnum)
+    public void SetPiece(Vector2Int cor, PlayerEnum player, PieceEnum piece)
     {
-        boardPieceState[cor.X, cor.Y] = pieceEnum;
-        boardPlayerState[cor.X, cor.Y] = playerEnum;
-        Board.Inst.UpdateSinglePieceClientRpc(cor);
+        boardState[cor.x, cor.y].player.Value = player;
+        boardState[cor.x, cor.y].piece.Value = piece; 
+        boardPlayerState[cor.x, cor.y] = player;
+        boardPieceState[cor.x, cor.y] = piece;
+        // Board.Inst.UpdateSinglePieceClientRpc(new Vector2Int(cor.X, cor.Y));
     }
 
-    public void MovePiece(int x, int y, int w, int z) => MovePiece(new Coordinate(x,y), new Coordinate(w,z));
-    public void MovePiece(Coordinate src, Coordinate dest)
-    {
-        if(src == dest) return;
-        Debug.Log(src.ToString() + " => " + dest.ToString());
-        SetPiece(dest, boardPlayerState[src.X, src.Y], boardPieceState[src.X, src.Y]);
-        RemovePiece(src);
-    }
+    // [ClientRpc]
+    // public void MovePieceClientRpc(int x, int y, int w, int z) => MovePieceClientRpc(new Coordinate(x,y), new Coordinate(w,z));
+    // [ClientRpc]
+    // public void MovePieceClientRpc(Coordinate src, Coordinate dest)
+    // {
+    //     if(src == dest) return;
+    //     // Debug.Log(src.ToString() + " => " + dest.ToString());
+    //     SetPieceClientRpc(dest, boardPlayerState[src.X, src.Y], boardPieceState[src.X, src.Y]);
+    //     RemovePieceClientRpc(src);
+    // }
 }

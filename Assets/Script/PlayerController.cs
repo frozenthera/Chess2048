@@ -84,9 +84,16 @@ public class PlayerController : NetworkBehaviour
                 {
                     if(GameManager.Inst.boardPlayerState[item.X, item.Y] != PlayerEnum.EMPTY)
                     {
-                        GameManager.Inst.RemovePiece(item.X, item.Y);
+                        GameManager.Inst.RemovePiece(new Vector2Int(item.X, item.Y));
                     }
-                    GameManager.Inst.MovePiece(temp, cor);
+                    // GameManager.Inst.MovePieceClientRpc(temp, cor);
+
+                    if(temp != cor)
+                    {
+                        GameManager.Inst.SetPiece(new Vector2Int(temp.X, temp.Y), GameManager.Inst.GetPlayerState(cor), GameManager.Inst.GetPieceState(cor));
+                        GameManager.Inst.RemovePiece(new Vector2Int(cor.X, cor.Y));
+                    }
+
                     Board.Inst.ResetPaintedClientRpc();
                     GameManager.Inst.curSelected = new Coordinate(-1, -1);
                     GameManager.Inst.curMovable = null;
@@ -121,7 +128,17 @@ public class PlayerController : NetworkBehaviour
             GameManager.Inst.curSelected = Coordinate.none;
             return;
         }
-        Board.Inst.PaintReachableClientRpc(GameManager.Inst.curMovable.ToArray());
+        Board.Inst.PaintReachableClientRpc(CoordinateToVector2Int(GameManager.Inst.curMovable.ToArray()));
+    }
+
+    public Vector2Int[] CoordinateToVector2Int(Coordinate[] cor)
+    {
+        Vector2Int[] vec = new Vector2Int[cor.Length];
+        for(int i=0; i<cor.Length; i++)
+        {
+            vec[i] = new Vector2Int(cor[i].X, cor[i].Y);
+        }
+        return vec;
     }
 
     [ServerRpc]
@@ -135,18 +152,18 @@ public class PlayerController : NetworkBehaviour
             if(GameManager.Inst.curPlayer.Value == PlayerEnum.WHITE)
             {
                 if(GameManager.Inst.WHITE_Idx.Value > 15) return;
-                GameManager.Inst.SetPiece(cor, PlayerEnum.WHITE, GameManager.Inst.spawnList[GameManager.Inst.WHITE_Idx.Value++]);
+                GameManager.Inst.SetPiece(new Vector2Int(cor.X, cor.Y), PlayerEnum.WHITE, GameManager.Inst.spawnList[GameManager.Inst.WHITE_Idx.Value++]);
             }
             else
             {
                 if(GameManager.Inst.BLACK_Idx.Value > 15) return;
-                GameManager.Inst.SetPiece(cor, PlayerEnum.BLACK, GameManager.Inst.spawnList[GameManager.Inst.BLACK_Idx.Value++]);
+                GameManager.Inst.SetPiece(new Vector2Int(cor.X, cor.Y), PlayerEnum.BLACK, GameManager.Inst.spawnList[GameManager.Inst.BLACK_Idx.Value++]);
             }
 
             GameManager.Inst.PlayerActed.Value = true;
             // UIManager.Inst.SetTurnEndButton(true);
             GameManager.Inst.TurnPhase = 3;
-            UIManager.Inst.UpdateNextPiece();
+            UIManager.Inst.UpdateNextPieceClientRpc();
         }
     }
 }

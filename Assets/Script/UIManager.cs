@@ -66,7 +66,8 @@ public class UIManager : NetworkBehaviour
         spawnText.color = num < 3 ? Color.white : Color.gray;
     }
 
-    public void UpdateNextPiece()
+    [ClientRpc]
+    public void UpdateNextPieceClientRpc()
     {
         if(GameManager.Inst.WHITE_Idx.Value > 15)
         {
@@ -103,6 +104,6 @@ public class UIManager : NetworkBehaviour
         UpdateTurnEndButton();
         GameManager.Inst.PlayerActed.Value = false;
         // SetTurnEndButton(true, false);
-        UpdateNextPiece();
+        UpdateNextPieceClientRpc();
     }
 }

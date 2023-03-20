@@ -12,18 +12,13 @@ public class Board : NetworkBehaviour
         Inst = this;
     }
 
-    private void Start()
-    {
-        // Initialize();
-    }
-
     public void Initialize()
     {
         for(int i=0; i<4; i++) 
         {
             for(int j=0; j<4; j++)
             {
-                Vector2 pos = new Vector2(i, j);
+                Vector2 pos = new Vector2(i, j)*2;
                 Checker checker = GameManager.Inst.boardState[i,j] = Instantiate(squarePrefab, pos, Quaternion.identity, transform).GetComponent<Checker>();
                 checker.name = i + ", " + j;
                 checker.coord = new NetworkVariable<Coordinate>(new Coordinate(i,j));
@@ -35,9 +30,13 @@ public class Board : NetworkBehaviour
                 checker.transform.parent = this.transform;
             }
         }
-
-        transform.localScale = new Vector3(2,2,1);
         transform.position = new Vector3(-2f, -3f, 0);
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if(IsServer) return;
+        transform.localScale = new Vector3(1,1,1);
     }
 
     int[] dx = new int[]{0, 1, 0, -1};
@@ -64,7 +63,17 @@ public class Board : NetworkBehaviour
                 {
                     temp++;
                 }
-                GameManager.Inst.MovePiece(i, j, i+_dx*(temp-1), j+_dy*(temp-1));
+                // GameManager.Inst.MovePieceClientRpc(i, j, i+_dx*(temp-1), j+_dy*(temp-1));
+
+                Coordinate src = new Coordinate(i,j);
+                Coordinate dest = new Coordinate(i+_dx*(temp-1), j+_dy*(temp-1));
+                
+                if(src != dest)
+                {
+                    GameManager.Inst.SetPiece(new Vector2Int(src.X, src.Y), GameManager.Inst.GetPlayerState(dest), GameManager.Inst.GetPieceState(dest));
+                    GameManager.Inst.RemovePiece(new Vector2Int(dest.X, dest.Y));
+                }
+
                 
                 int changedX = i+_dx*(temp-1);
                 int changedY = j+_dy*(temp-1);
@@ -74,27 +83,21 @@ public class Board : NetworkBehaviour
 
                 if(GameManager.Inst.boardPlayerState[changedX+_dx, changedY+_dy] == GameManager.Inst.boardPlayerState[changedX, changedY])
                 {
-                    GameManager.Inst.SetPiece(changedX+_dx, changedY+_dy, GameManager.Inst.GetPlayerState(new Coordinate(changedX+_dx, changedY+_dy)), GameManager.Inst.boardPieceState[changedX, changedY] + 1);
-                    // GameManager.Inst.boardPieceState[changedX+_dx][changedY+_dy] = ;
-                    // GameManager.Inst.boardPlayerState[changedX+_dx][changedY+_dy] = ;
-
-                    GameManager.Inst.RemovePiece(changedX, changedY);
-                    // GameManager.Inst.boardPieceState[changedX][changedY] = PieceEnum.NONE;
-                    // GameManager.Inst.boardPlayerState[changedX][changedY] = PlayerEnum.EMPTY;
+                    GameManager.Inst.SetPiece(new Vector2Int(changedX+_dx, changedY+_dy), GameManager.Inst.GetPlayerState(new Coordinate(changedX+_dx, changedY+_dy)), GameManager.Inst.boardPieceState[changedX, changedY] + 1);
+                    GameManager.Inst.RemovePiece(new Vector2Int(changedX, changedY));
                 }
             }
         }
-
-        UpdateEveryPieceClientRpc();
+        // UpdateEveryPieceClientRpc();
     }
 
     [ClientRpc]
-    public void PaintReachableClientRpc(Coordinate[] coordList)
+    public void PaintReachableClientRpc(Vector2Int[] coordList)
     {
         if(coordList.Length == 0) return;
         foreach(var item in coordList)
         {
-            GameManager.Inst.boardState[item.X, item.Y].PaintBackground(Color.green);
+            GameManager.Inst.boardState[item.x, item.y].PaintBackground(Color.green);
         }
     }
 
@@ -123,8 +126,9 @@ public class Board : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void UpdateSinglePieceClientRpc(Coordinate coor)
+    public void UpdateSinglePieceClientRpc(Vector2Int coor)
     {
-        GameManager.Inst.boardState[coor.X, coor.Y].PaintPiece();
+        Debug.Log(coor.ToString());
+        GameManager.Inst.boardState[coor.x, coor.y].PaintPiece();
     }
 }

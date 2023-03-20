@@ -114,7 +114,7 @@ Transform:
   m_GameObject: {fileID: 5108794728243762704}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2, y: 2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3362114914009842815}
@@ -185,6 +185,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8006898038ec81840973d04f97adacdc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: 0
+  piece: 0
+  x: 0
+  y: 0
   pieceRenderer: {fileID: 3614470784627610337}
   whitePieceSprite:
   - {fileID: 1340600614, guid: 8f2332b8190add948881518a600eded2, type: 3}
