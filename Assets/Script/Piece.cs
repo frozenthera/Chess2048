@@ -21,6 +21,10 @@ public class Piece
                     res.Add(temp);
                     break;
                 }
+                else if(piece == PieceEnum.PAWN && !GameManager.Inst.isTherePiece(temp))
+                {
+                    break;
+                }
                 else if(!GameManager.Inst.isTherePiece(temp))
                 {
                     res.Add(temp);

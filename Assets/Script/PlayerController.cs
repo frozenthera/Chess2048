@@ -24,25 +24,25 @@ public class PlayerController : NetworkBehaviour
             if (Input.GetKeyDown(KeyCode.S))
             {
                 Debug.Log("Slide Down!");
-                Board.Inst.SlideServerRpc(Direction.DOWN);
+                SlideServerRpc(Direction.DOWN);
                 return;
             }
             else if (Input.GetKeyDown(KeyCode.D))
             {
                 Debug.Log("Slide Right!");
-                Board.Inst.SlideServerRpc(Direction.RIGHT);
+                SlideServerRpc(Direction.RIGHT);
                 return;
             }
             else if (Input.GetKeyDown(KeyCode.W))
             {
                 Debug.Log("Slide Up!");
-                Board.Inst.SlideServerRpc(Direction.UP);
+                SlideServerRpc(Direction.UP);
                 return;
             }
             else if (Input.GetKeyDown(KeyCode.A))
             {
                 Debug.Log("Slide Left!");
-                Board.Inst.SlideServerRpc(Direction.LEFT);
+                SlideServerRpc(Direction.LEFT);
                 return;
             }
         }
@@ -60,11 +60,17 @@ public class PlayerController : NetworkBehaviour
                 }
                 if(GameManager.Inst.TurnPhase < 2)
                 {
-                    ClickToMovePieceServerRpc(hit.transform.GetComponent<Checker>().coord.Value);
                     ClickMovablePieceServerRpc(hit.transform.GetComponent<Checker>().coord.Value);
+                    ClickToMovePieceServerRpc(hit.transform.GetComponent<Checker>().coord.Value);
                 }
             }
         }
+    }
+    
+    [ServerRpc]
+    public void SlideServerRpc(Direction dir)
+    {
+        Board.Inst.SlideServerRpc(dir);
     }
 
     [ServerRpc]
@@ -77,7 +83,7 @@ public class PlayerController : NetworkBehaviour
 
         if(GameManager.Inst.curSelected != Coordinate.none)
         {
-            Coordinate temp = GameManager.Inst.curSelected;
+            Coordinate src = GameManager.Inst.curSelected;
             foreach(var item in GameManager.Inst.curMovable)
             {
                 if(item.X == dest.coord.Value.X && item.Y == dest.coord.Value.Y)
@@ -88,10 +94,10 @@ public class PlayerController : NetworkBehaviour
                     }
                     // GameManager.Inst.MovePieceClientRpc(temp, cor);
 
-                    if(temp != cor)
+                    if(src != cor)
                     {
-                        GameManager.Inst.SetPiece(new Vector2Int(temp.X, temp.Y), GameManager.Inst.GetPlayerState(cor), GameManager.Inst.GetPieceState(cor));
-                        GameManager.Inst.RemovePiece(new Vector2Int(cor.X, cor.Y));
+                        GameManager.Inst.SetPiece(new Vector2Int(cor.X, cor.Y), GameManager.Inst.GetPlayerState(src), GameManager.Inst.GetPieceState(src));
+                        GameManager.Inst.RemovePiece(new Vector2Int(src.X, src.Y));
                     }
 
                     Board.Inst.ResetPaintedClientRpc();
@@ -107,21 +113,22 @@ public class PlayerController : NetworkBehaviour
     [ServerRpc]
     public void ClickMovablePieceServerRpc(Coordinate cor)
     {
-        GameManager.Inst.curSelected = cor;
-
+        //빈칸을 선택하는 경우
+        if(GameManager.Inst.GetPlayerState(cor) == PlayerEnum.EMPTY) return;
+        //상대의 기물을 선택하는 경우
         if(GameManager.Inst.curPlayer.Value != GameManager.Inst.GetPlayerState(cor)) return;
-        if(GameManager.Inst.isSelectedAvailable())
-        {
-            GameManager.Inst.curMovable = null;
-            Board.Inst.ResetPaintedClientRpc();
-        } 
 
-        if(GameManager.Inst.curSelected == cor) 
+        //현재 선택된 칸을 선택하는 경우
+        if(GameManager.Inst.curSelected == cor)
         {
+            GameManager.Inst.curMovable.Clear();
             GameManager.Inst.curSelected = Coordinate.none;
+            Board.Inst.ResetPaintedClientRpc();
             return;
         }
 
+        //자신의 기물을 선택하였을 때 이동가능한 부분 표시
+        GameManager.Inst.curSelected = cor;
         GameManager.Inst.curMovable = Piece.ReachableCoordinate(cor, GameManager.Inst.boardPlayerState[cor.X, cor.Y], GameManager.Inst.boardPieceState[cor.X, cor.Y]);
         if(GameManager.Inst.curMovable.Count == 0)
         {
@@ -144,6 +151,8 @@ public class PlayerController : NetworkBehaviour
     [ServerRpc]
     public void ClickToSpawnPieceServerRpc(Coordinate cor)
     {
+        if(GameManager.Inst.curSelected != Coordinate.none) return;
+
         Checker dest = GameManager.Inst.boardState[cor.X, cor.Y];
         //Piece spawn procedure
         // if(GameManager.Inst.GetPlayerState(dest.coord.Value) == PlayerEnum.EMPTY)
