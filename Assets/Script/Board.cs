@@ -70,8 +70,8 @@ public class Board : NetworkBehaviour
                 
                 if(src != dest)
                 {
-                    GameManager.Inst.SetPiece(new Vector2Int(src.X, src.Y), GameManager.Inst.GetPlayerState(dest), GameManager.Inst.GetPieceState(dest));
-                    GameManager.Inst.RemovePiece(new Vector2Int(dest.X, dest.Y));
+                    GameManager.Inst.SetPiece(new Vector2Int(dest.X, dest.Y), GameManager.Inst.GetPlayerState(src), GameManager.Inst.GetPieceState(src));
+                    GameManager.Inst.RemovePiece(new Vector2Int(src.X, src.Y));
                 }
 
                 
@@ -128,7 +128,7 @@ public class Board : NetworkBehaviour
     [ClientRpc]
     public void UpdateSinglePieceClientRpc(Vector2Int coor)
     {
-        Debug.Log(coor.ToString());
+        // Debug.Log(coor.ToString());
         GameManager.Inst.boardState[coor.x, coor.y].PaintPiece();
     }
 }

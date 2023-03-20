@@ -8,9 +8,6 @@ public class Checker : NetworkBehaviour
     public NetworkVariable<Coordinate> coord;
     public NetworkVariable<PlayerEnum> player;
     public NetworkVariable<PieceEnum> piece;
-    public int x;
-    public int y;
-
     private bool isChanged = false;
 
     [SerializeField] private SpriteRenderer pieceRenderer;
@@ -33,18 +30,15 @@ public class Checker : NetworkBehaviour
 
     public void Initialize()
     {        
-        player.Value = PlayerEnum.EMPTY;
-        piece.Value = PieceEnum.NONE;
         piece.OnValueChanged += PaintPiece;
-        if(IsServer) return;
+        if(IsServer)
+        {
+            player.Value = PlayerEnum.EMPTY;
+            piece.Value = PieceEnum.NONE;
+            return;
+        }
         PaintBackground((coord.Value.X + coord.Value.Y) % 2 == 0 ? new Color(60/255f,60/255f,60/255f) : new Color(200/255f,200/255f,200/255f));
         GameManager.Inst.boardState[coord.Value.X, coord.Value.Y] = this;
-    }
-
-    private void Update()
-    {
-        x = coord.Value.X;
-        y = coord.Value.Y;
     }
 
     public void PaintBackground(Color color)

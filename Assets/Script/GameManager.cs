@@ -156,6 +156,7 @@ public class GameManager : NetworkBehaviour
 
     public void SetPiece(Vector2Int cor, PlayerEnum player, PieceEnum piece)
     {
+        Debug.Log(cor + "is setted to " + piece.ToString());
         boardState[cor.x, cor.y].player.Value = player;
         boardState[cor.x, cor.y].piece.Value = piece; 
         boardPlayerState[cor.x, cor.y] = player;
