@@ -65,6 +65,7 @@ public class GameManager : NetworkBehaviour
 
     public void OnCurPlayerChanged(PlayerEnum past, PlayerEnum cur)
     {
+        UIManager.Inst.UpdateTurnEndButton();
         Board.Inst.ResetPainted();
     }
 
@@ -75,10 +76,7 @@ public class GameManager : NetworkBehaviour
         else curPlayer.Value = PlayerEnum.WHITE;
 
         PlayerActed.Value = false;
-        // UIManager.Inst.SetTurnEndButton(false);
-
         turnPhase.Value = 0;
-        
         curSelected = Coordinate.none;
     }
 
@@ -99,14 +97,17 @@ public class GameManager : NetworkBehaviour
         UIManager.Inst.SetResultPanel(winner);
     }
 
+    public override void OnNetworkSpawn()
+    {
+        turnPhase.OnValueChanged += OnTurnPhaseChanged;
+        curPlayer.OnValueChanged += OnCurPlayerChanged;
+    }
+
     public void Initialize()
     {
         boardState = new Checker[4,4];
         boardPlayerState = new PlayerEnum[4,4];
         boardPieceState = new PieceEnum[4,4];
-
-        turnPhase.OnValueChanged += OnTurnPhaseChanged;
-        curPlayer.OnValueChanged += OnCurPlayerChanged;
 
         for(int i=0; i<4; i++)
         {

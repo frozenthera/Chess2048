@@ -5,6 +5,9 @@ using Unity.Netcode;
 
 public class PlayerController : NetworkBehaviour
 {
+
+    private bool spawnDone = false;
+
     public override void OnNetworkSpawn()
     {
         if(!IsLocalPlayer) return;
@@ -168,15 +171,16 @@ public class PlayerController : NetworkBehaviour
             {
                 if(GameManager.Inst.WHITE_Idx.Value > 15) return;
                 GameManager.Inst.SetPiece(new Vector2Int(cor.X, cor.Y), PlayerEnum.WHITE, GameManager.Inst.spawnList[GameManager.Inst.WHITE_Idx.Value++]);
+                spawnDone = true;
             }
             else
             {
                 if(GameManager.Inst.BLACK_Idx.Value > 15) return;
                 GameManager.Inst.SetPiece(new Vector2Int(cor.X, cor.Y), PlayerEnum.BLACK, GameManager.Inst.spawnList[GameManager.Inst.BLACK_Idx.Value++]);
+                spawnDone = true;
             }
 
             GameManager.Inst.PlayerActed.Value = true;
-            // UIManager.Inst.SetTurnEndButton(true);
             GameManager.Inst.TurnPhase = 3;
             UIManager.Inst.UpdateNextPieceClientRpc();
         }
@@ -186,5 +190,15 @@ public class PlayerController : NetworkBehaviour
     public void SwapTurnServerRpc()
     {
         GameManager.Inst.SwapTurn();
+    }
+
+    private void LateUpdate() 
+    {
+        if(!IsServer) return;
+        if(spawnDone)
+        {
+            Board.Inst.ResetPaintedClientRpc();
+            spawnDone = false;
+        }    
     }
 }

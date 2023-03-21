@@ -34,7 +34,6 @@ public class UIManager : NetworkBehaviour
         UpdateTurnEndButton();
         turnEndButton.onClick.AddListener(()=>{
             GameManager.Inst.localPlayer.SwapTurnServerRpc();
-            UpdateTurnEndButton();
         });
 
         gameRestartButton.onClick.AddListener(()=>{
@@ -103,7 +102,6 @@ public class UIManager : NetworkBehaviour
     {
         UpdateTurnEndButton();
         GameManager.Inst.PlayerActed.Value = false;
-        // SetTurnEndButton(true, false);
         UpdateNextPieceClientRpc();
     }
 }
