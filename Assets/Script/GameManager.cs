@@ -8,6 +8,8 @@ public class GameManager : NetworkBehaviour
     //FIXME_Later move to Singleton<>
     public static GameManager Inst;
 
+    public PlayerController localPlayer;
+
     private Dictionary<PieceEnum, GameObject> pieceDict = new();
 
     public NetworkVariable<PlayerEnum> curPlayer = new NetworkVariable<PlayerEnum>(PlayerEnum.BLACK);
@@ -34,13 +36,13 @@ public class GameManager : NetworkBehaviour
     /// False when curPlayer is at Move Phase(Slide or Piece move)<br/>
     /// True when curPlayer is at Spawn Phase
     /// </summary>
-    private int turnPhase = 0;
+    private NetworkVariable<int> turnPhase = new NetworkVariable<int>(0);
     public int TurnPhase
     {
-        get => turnPhase;
+        get => turnPhase.Value;
         set
         {
-            turnPhase = value;
+            turnPhase.Value = value;
             UIManager.Inst.SetTurnPhaseIndicator();
         }
     }
@@ -56,6 +58,16 @@ public class GameManager : NetworkBehaviour
         temp = new Vector2(curSelected.X, curSelected.Y);
     }
 
+    public void OnTurnPhaseChanged(int past, int cur)
+    {
+        UIManager.Inst.SetTurnPhaseIndicator();
+    }
+
+    public void OnCurPlayerChanged(PlayerEnum past, PlayerEnum cur)
+    {
+        Board.Inst.ResetPainted();
+    }
+
     public void SwapTurn()
     {
         if(curPlayer.Value == PlayerEnum.WHITE) 
@@ -65,11 +77,9 @@ public class GameManager : NetworkBehaviour
         PlayerActed.Value = false;
         // UIManager.Inst.SetTurnEndButton(false);
 
-        turnPhase = 0;
-        UIManager.Inst.SetTurnPhaseIndicator();
+        turnPhase.Value = 0;
         
         curSelected = Coordinate.none;
-        Board.Inst.ResetPaintedClientRpc();
     }
 
     public bool isTherePieceWithOppo(Coordinate coord, PlayerEnum compare)
@@ -94,6 +104,9 @@ public class GameManager : NetworkBehaviour
         boardState = new Checker[4,4];
         boardPlayerState = new PlayerEnum[4,4];
         boardPieceState = new PieceEnum[4,4];
+
+        turnPhase.OnValueChanged += OnTurnPhaseChanged;
+        curPlayer.OnValueChanged += OnCurPlayerChanged;
 
         for(int i=0; i<4; i++)
         {

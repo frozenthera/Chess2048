@@ -5,6 +5,12 @@ using Unity.Netcode;
 
 public class PlayerController : NetworkBehaviour
 {
+    public override void OnNetworkSpawn()
+    {
+        if(!IsLocalPlayer) return;
+        GameManager.Inst.localPlayer = this;
+    }
+
     private void Update()
     {
         if(GameManager.Inst.isGameOver) return;
@@ -12,7 +18,7 @@ public class PlayerController : NetworkBehaviour
 
         if(Input.GetKeyDown(KeyCode.E))
         {
-           GameManager.Inst.SwapTurn();
+           SwapTurnServerRpc();
            UIManager.Inst.UpdateTurnEndButton();
            return;
         }
@@ -174,5 +180,11 @@ public class PlayerController : NetworkBehaviour
             GameManager.Inst.TurnPhase = 3;
             UIManager.Inst.UpdateNextPieceClientRpc();
         }
+    }
+
+    [ServerRpc]
+    public void SwapTurnServerRpc()
+    {
+        GameManager.Inst.SwapTurn();
     }
 }

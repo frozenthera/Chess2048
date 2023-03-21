@@ -33,7 +33,7 @@ public class UIManager : NetworkBehaviour
     {
         UpdateTurnEndButton();
         turnEndButton.onClick.AddListener(()=>{
-            GameManager.Inst.SwapTurn();
+            GameManager.Inst.localPlayer.SwapTurnServerRpc();
             UpdateTurnEndButton();
         });
 

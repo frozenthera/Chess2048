@@ -113,6 +113,17 @@ public class Board : NetworkBehaviour
         }
     }
 
+    public void ResetPainted()
+    {
+        for(int i=0; i<4; i++)
+        {
+            for(int j=0; j<4; j++)
+            {
+                GameManager.Inst.boardState[i,j].PaintBackground( (i+j)%2==0 ? new Color(60/255f,60/255f,60/255f) : new Color(200/255f,200/255f,200/255f));
+            }
+        }
+    }
+
     [ClientRpc]
     public void UpdateEveryPieceClientRpc()
     {
