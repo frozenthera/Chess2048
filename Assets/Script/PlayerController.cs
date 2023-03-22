@@ -5,7 +5,6 @@ using Unity.Netcode;
 
 public class PlayerController : NetworkBehaviour
 {
-
     private bool spawnDone = false;
 
     public override void OnNetworkSpawn()
@@ -16,8 +15,9 @@ public class PlayerController : NetworkBehaviour
 
     private void Update()
     {
-        if(GameManager.Inst.isGameOver) return;
         if (!IsLocalPlayer) return;
+        if(GameManager.Inst.isGameOver) return;
+        if(!GameManager.Inst.IsMyTurn) return;
 
         if(Input.GetKeyDown(KeyCode.E))
         {

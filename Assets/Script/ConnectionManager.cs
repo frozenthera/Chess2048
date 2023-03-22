@@ -69,9 +69,6 @@ public class ConnectionManager : MonoBehaviour
         code = joinCode;
         NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(serverData);
         NetworkManager.Singleton.StartHost();
-
-        GameManager.Inst.Initialize();
-        Board.Inst.Initialize();
     }
 
     static async void StartClient()

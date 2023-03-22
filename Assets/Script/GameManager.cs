@@ -25,6 +25,7 @@ public class GameManager : NetworkBehaviour
     public NetworkVariable<int> WHITE_Idx = new NetworkVariable<int>(0);
     public NetworkVariable<int> BLACK_Idx = new NetworkVariable<int>(0);
     public NetworkVariable<bool> PlayerActed = new NetworkVariable<bool>(false);
+    public NetworkVariable<bool> isServerBlack = new NetworkVariable<bool>(true);
     public NetworkVariable<PlayerEnum> curPlayer = new NetworkVariable<PlayerEnum>(PlayerEnum.BLACK);
 
     /// <summary>
@@ -42,6 +43,14 @@ public class GameManager : NetworkBehaviour
         }
     }
 
+    public bool IsMyTurn
+    {
+        get => IsServer 
+        ? isServerBlack.Value && curPlayer.Value == PlayerEnum.BLACK || !isServerBlack.Value && curPlayer.Value == PlayerEnum.WHITE
+        : !isServerBlack.Value && curPlayer.Value == PlayerEnum.BLACK || isServerBlack.Value && curPlayer.Value == PlayerEnum.WHITE
+        ;
+    }
+
     //FIXME
     private void Awake()
     {
@@ -52,6 +61,14 @@ public class GameManager : NetworkBehaviour
     {
         turnPhase.OnValueChanged += OnTurnPhaseChanged;
         curPlayer.OnValueChanged += OnCurPlayerChanged;
+        NetworkManager.OnClientConnectedCallback += InitializeGame;
+    }
+
+    public void InitializeGame(ulong clientID)
+    {
+        if(!IsServer) return;
+        GameManager.Inst.Initialize();
+        Board.Inst.Initialize();
     }
 
     public void Initialize()
@@ -59,6 +76,9 @@ public class GameManager : NetworkBehaviour
         boardState = new Checker[4,4];
         boardPlayerState = new PlayerEnum[4,4];
         boardPieceState = new PieceEnum[4,4];
+
+        isServerBlack.Value = Random.Range(0,2) == 0;
+        UIManager.Inst.InitializeClientRpc();
 
         for(int i=0; i<4; i++)
         {

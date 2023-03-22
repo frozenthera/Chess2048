@@ -87,9 +87,16 @@ public class UIManager : NetworkBehaviour
         }        
     }
 
-    public void UpdateTurnEndButton()
+    [ClientRpc]
+    public void InitializeClientRpc()
     {
-        turnPlayerInfoText.text = "Current Player\n" + GameManager.Inst.curPlayer.Value.ToString();
+        UpdateTurnEndButton();
+    }
+
+    public void UpdateTurnEndButton() => UpdateTurnEndButton(GameManager.Inst.IsMyTurn);
+    public void UpdateTurnEndButton(bool value)
+    {
+        turnPlayerInfoText.text = value ? "My Turn!" : "Waiting for Opponent..." ;
     }
 
     public void SetResultPanel(PlayerEnum winner)
