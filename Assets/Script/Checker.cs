@@ -48,8 +48,6 @@ public class Checker : NetworkBehaviour
 
     public void PaintPiece()
     {
-        // Debug.Log(this.coord.Value.ToString() + ", " + GameManager.Inst.GetPieceState(this.coord.Value) + ", " + GameManager.Inst.GetPlayerState(this.coord.Value));
-        // if(GameManager.Inst.GetPlayerState(this.coord.Value) == PlayerEnum.EMPTY)
         if(player.Value == PlayerEnum.EMPTY)
         {
             pieceRenderer.sprite = null;
@@ -66,7 +64,6 @@ public class Checker : NetworkBehaviour
 
     public void PaintPiece(PieceEnum past, PieceEnum cur)
     {
-        // Debug.Log(coord.Value.ToString() + " : " + player.Value.ToString() + ", " + cur.ToString());        
         if(IsServer)
         {
             if(player.Value == PlayerEnum.EMPTY)

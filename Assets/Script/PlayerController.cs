@@ -32,25 +32,25 @@ public class PlayerController : NetworkBehaviour
         {
             if (Input.GetKeyDown(KeyCode.S))
             {
-                Debug.Log("Slide Down!");
+                // Debug.Log("Slide Down!");
                 SlideServerRpc(Direction.DOWN);
                 return;
             }
             else if (Input.GetKeyDown(KeyCode.D))
             {
-                Debug.Log("Slide Right!");
+                // Debug.Log("Slide Right!");
                 SlideServerRpc(Direction.RIGHT);
                 return;
             }
             else if (Input.GetKeyDown(KeyCode.W))
             {
-                Debug.Log("Slide Up!");
+                // Debug.Log("Slide Up!");
                 SlideServerRpc(Direction.UP);
                 return;
             }
             else if (Input.GetKeyDown(KeyCode.A))
             {
-                Debug.Log("Slide Left!");
+                // Debug.Log("Slide Left!");
                 SlideServerRpc(Direction.LEFT);
                 return;
             }
@@ -101,7 +101,6 @@ public class PlayerController : NetworkBehaviour
                     {
                         GameManager.Inst.RemovePiece(new Vector2Int(item.X, item.Y));
                     }
-                    // GameManager.Inst.MovePieceClientRpc(temp, cor);
 
                     if(src != cor)
                     {
@@ -164,7 +163,6 @@ public class PlayerController : NetworkBehaviour
 
         Checker dest = GameManager.Inst.boardState[cor.X, cor.Y];
         //Piece spawn procedure
-        // if(GameManager.Inst.GetPlayerState(dest.coord.Value) == PlayerEnum.EMPTY)
         if(GameManager.Inst.boardPlayerState[cor.X, cor.Y] == PlayerEnum.EMPTY)
         {
             if(GameManager.Inst.curPlayer.Value == PlayerEnum.WHITE)

@@ -10,28 +10,23 @@ public class GameManager : NetworkBehaviour
 
     public PlayerController localPlayer;
 
-    private Dictionary<PieceEnum, GameObject> pieceDict = new();
-
-    public NetworkVariable<PlayerEnum> curPlayer = new NetworkVariable<PlayerEnum>(PlayerEnum.BLACK);
-
     public Checker[,] boardState = new Checker[4,4];
     public PlayerEnum[,] boardPlayerState;
     public PieceEnum[,] boardPieceState;
 
-    // public NetworkVariable<List<Piece>> boardPieceList;
-    public NetworkVariable<int> WHITE_Idx = new NetworkVariable<int>(0);
-    public NetworkVariable<int> BLACK_Idx = new NetworkVariable<int>(0);
-    public NetworkVariable<bool> PlayerActed = new NetworkVariable<bool>(false);
-
     public Coordinate curSelected = Coordinate.none;
-    public Vector2 temp;
     public List<Coordinate> curMovable;
     public List<PieceEnum> spawnList;
 
     [SerializeField] private Transform pieces;
     public Transform Pieces => pieces;
-
     public bool isGameOver = false;
+    
+    public NetworkVariable<int> WHITE_Idx = new NetworkVariable<int>(0);
+    public NetworkVariable<int> BLACK_Idx = new NetworkVariable<int>(0);
+    public NetworkVariable<bool> PlayerActed = new NetworkVariable<bool>(false);
+    public NetworkVariable<PlayerEnum> curPlayer = new NetworkVariable<PlayerEnum>(PlayerEnum.BLACK);
+
     /// <summary>
     /// False when curPlayer is at Move Phase(Slide or Piece move)<br/>
     /// True when curPlayer is at Spawn Phase
@@ -53,9 +48,26 @@ public class GameManager : NetworkBehaviour
         Inst = this;
     }
 
-    private void Update()
+    public override void OnNetworkSpawn()
     {
-        temp = new Vector2(curSelected.X, curSelected.Y);
+        turnPhase.OnValueChanged += OnTurnPhaseChanged;
+        curPlayer.OnValueChanged += OnCurPlayerChanged;
+    }
+
+    public void Initialize()
+    {
+        boardState = new Checker[4,4];
+        boardPlayerState = new PlayerEnum[4,4];
+        boardPieceState = new PieceEnum[4,4];
+
+        for(int i=0; i<4; i++)
+        {
+            for(int j=0; j<4; j++)
+            {
+                boardPlayerState[i, j] = PlayerEnum.EMPTY;
+                boardPieceState[i, j] = PieceEnum.NONE;
+            }
+        }
     }
 
     public void OnTurnPhaseChanged(int past, int cur)
@@ -97,28 +109,6 @@ public class GameManager : NetworkBehaviour
         UIManager.Inst.SetResultPanel(winner);
     }
 
-    public override void OnNetworkSpawn()
-    {
-        turnPhase.OnValueChanged += OnTurnPhaseChanged;
-        curPlayer.OnValueChanged += OnCurPlayerChanged;
-    }
-
-    public void Initialize()
-    {
-        boardState = new Checker[4,4];
-        boardPlayerState = new PlayerEnum[4,4];
-        boardPieceState = new PieceEnum[4,4];
-
-        for(int i=0; i<4; i++)
-        {
-            for(int j=0; j<4; j++)
-            {
-                boardPlayerState[i, j] = PlayerEnum.EMPTY;
-                boardPieceState[i, j] = PieceEnum.NONE;
-            }
-        }
-    }
-
     public void ResetGame()
     {
         curSelected = Coordinate.none;
@@ -136,8 +126,8 @@ public class GameManager : NetworkBehaviour
                 boardPieceState[i, j] = PieceEnum.NONE;
             }
         }
-        // should reset at client level
 
+        // should reset at client level
         UIManager.Inst.ResetUI();
         isGameOver = false;
     }
@@ -149,7 +139,6 @@ public class GameManager : NetworkBehaviour
 
     public PieceEnum GetPieceState(Coordinate coord)
     {
-        // Debug.Log(coord.ToString());
         return boardPieceState[coord.X, coord.Y];
     }
 
@@ -161,21 +150,30 @@ public class GameManager : NetworkBehaviour
     //Should only call from Server-Side
     public void RemovePiece(Vector2Int cor)
     {
+        if(boardPieceState[cor.x, cor.y] == PieceEnum.KING)
+        {
+            EndGameClientRpc(boardPlayerState[cor.x, cor.y]);
+        }   
+
         boardState[cor.x, cor.y].player.Value = PlayerEnum.EMPTY;
         boardState[cor.x, cor.y].piece.Value = PieceEnum.NONE;  
         boardPieceState[cor.x, cor.y] = PieceEnum.NONE;
         boardPlayerState[cor.x, cor.y] = PlayerEnum.EMPTY;
-        // Board.Inst.UpdateSinglePieceClientRpc(new Vector2Int(cor.X, cor.Y));
     }
 
     public void SetPiece(Vector2Int cor, PlayerEnum player, PieceEnum piece)
     {
-        Debug.Log(cor + "is setted to " + piece.ToString());
         boardState[cor.x, cor.y].player.Value = player;
         boardState[cor.x, cor.y].piece.Value = piece; 
         boardPlayerState[cor.x, cor.y] = player;
         boardPieceState[cor.x, cor.y] = piece;
-        // Board.Inst.UpdateSinglePieceClientRpc(new Vector2Int(cor.X, cor.Y));
+    }
+
+    [ClientRpc]
+    public void EndGameClientRpc(PlayerEnum playerEnum)
+    {
+        Debug.Log(playerEnum.ToString() + " WINS!!!");
+        UIManager.Inst.SetResultPanel(playerEnum);
     }
 
     // [ClientRpc]

@@ -63,7 +63,6 @@ public class Board : NetworkBehaviour
                 {
                     temp++;
                 }
-                // GameManager.Inst.MovePieceClientRpc(i, j, i+_dx*(temp-1), j+_dy*(temp-1));
 
                 Coordinate src = new Coordinate(i,j);
                 Coordinate dest = new Coordinate(i+_dx*(temp-1), j+_dy*(temp-1));
@@ -88,7 +87,6 @@ public class Board : NetworkBehaviour
                 }
             }
         }
-        // UpdateEveryPieceClientRpc();
     }
 
     [ClientRpc]
@@ -139,7 +137,6 @@ public class Board : NetworkBehaviour
     [ClientRpc]
     public void UpdateSinglePieceClientRpc(Vector2Int coor)
     {
-        // Debug.Log(coor.ToString());
         GameManager.Inst.boardState[coor.x, coor.y].PaintPiece();
     }
 }

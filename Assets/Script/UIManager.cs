@@ -37,8 +37,8 @@ public class UIManager : NetworkBehaviour
         });
 
         gameRestartButton.onClick.AddListener(()=>{
-            GameManager.Inst.ResetGame();
-            ResultPanel.gameObject.SetActive(false);
+            // GameManager.Inst.ResetGame();
+            // ResultPanel.gameObject.SetActive(false);
         });
 
         GameManager.Inst.PlayerActed.OnValueChanged += SetTurnEndButton;
