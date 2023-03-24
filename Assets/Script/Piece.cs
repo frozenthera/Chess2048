@@ -5,7 +5,7 @@ using Unity.Netcode;
 
 public class Piece
 {
-    public static List<Coordinate> ReachableCoordinate(Coordinate curCoord, PlayerEnum player, PieceEnum piece)
+    public static List<Coordinate> ReachableCoordinate(Coordinate curCoord, PlayerEnum player, PieceEnum piece, bool considerPawnCheck = false)
     {
         List<Coordinate> res = new();
         List<Coordinate> diff = GetDiff(piece);
@@ -17,6 +17,11 @@ public class Piece
                 if(temp.X < 0 || temp.X > 3 || temp.Y < 0 || temp.Y > 3) continue;
 
                 if(GameManager.Inst.isTherePieceWithOppo(temp, player))
+                {
+                    res.Add(temp);
+                    break;
+                }
+                else if(piece == PieceEnum.PAWN && !GameManager.Inst.isTherePiece(temp) && considerPawnCheck)
                 {
                     res.Add(temp);
                     break;

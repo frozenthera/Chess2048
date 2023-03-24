@@ -46,12 +46,12 @@ public class Checker : NetworkBehaviour
         sp.color = color;
     }
 
-    public void PaintPiece()
+    public void PaintPiece(bool popup = false)
     {
         if(player.Value == PlayerEnum.EMPTY)
         {
             pieceRenderer.sprite = null;
-        } 
+        }
         else if(player.Value == PlayerEnum.WHITE)
         {
             pieceRenderer.sprite = whitePieceSprite[(int)piece.Value];

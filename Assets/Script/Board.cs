@@ -83,10 +83,12 @@ public class Board : NetworkBehaviour
                 if(GameManager.Inst.boardPlayerState[changedX+_dx, changedY+_dy] == GameManager.Inst.boardPlayerState[changedX, changedY])
                 {
                     GameManager.Inst.SetPiece(new Vector2Int(changedX+_dx, changedY+_dy), GameManager.Inst.GetPlayerState(new Coordinate(changedX+_dx, changedY+_dy)), GameManager.Inst.boardPieceState[changedX, changedY] + 1);
-                    GameManager.Inst.RemovePiece(new Vector2Int(changedX, changedY));
+                    GameManager.Inst.RemovePiece(new Vector2Int(changedX, changedY), true);
                 }
             }
         }
+
+        GameManager.Inst.PlayerActed.Value = true;
     }
 
     [ClientRpc]

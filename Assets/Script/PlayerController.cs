@@ -5,8 +5,6 @@ using Unity.Netcode;
 
 public class PlayerController : NetworkBehaviour
 {
-    private bool spawnDone = false;
-
     public override void OnNetworkSpawn()
     {
         if(!IsLocalPlayer) return;
@@ -28,32 +26,29 @@ public class PlayerController : NetworkBehaviour
 
         if(GameManager.Inst.PlayerActed.Value) return;
 
-        if(GameManager.Inst.TurnPhase < 1)
+        if (Input.GetKeyDown(KeyCode.S))
         {
-            if (Input.GetKeyDown(KeyCode.S))
-            {
-                // Debug.Log("Slide Down!");
-                SlideServerRpc(Direction.DOWN);
-                return;
-            }
-            else if (Input.GetKeyDown(KeyCode.D))
-            {
-                // Debug.Log("Slide Right!");
-                SlideServerRpc(Direction.RIGHT);
-                return;
-            }
-            else if (Input.GetKeyDown(KeyCode.W))
-            {
-                // Debug.Log("Slide Up!");
-                SlideServerRpc(Direction.UP);
-                return;
-            }
-            else if (Input.GetKeyDown(KeyCode.A))
-            {
-                // Debug.Log("Slide Left!");
-                SlideServerRpc(Direction.LEFT);
-                return;
-            }
+            // Debug.Log("Slide Down!");
+            SlideServerRpc(Direction.DOWN);
+            return;
+        }
+        else if (Input.GetKeyDown(KeyCode.D))
+        {
+            // Debug.Log("Slide Right!");
+            SlideServerRpc(Direction.RIGHT);
+            return;
+        }
+        else if (Input.GetKeyDown(KeyCode.W))
+        {
+            // Debug.Log("Slide Up!");
+            SlideServerRpc(Direction.UP);
+            return;
+        }
+        else if (Input.GetKeyDown(KeyCode.A))
+        {
+            // Debug.Log("Slide Left!");
+            SlideServerRpc(Direction.LEFT);
+            return;
         }
 
         if(Input.GetMouseButtonDown(0))
@@ -63,15 +58,12 @@ public class PlayerController : NetworkBehaviour
             if(hit.transform == null) return;
             if(hit.transform.CompareTag("Checker"))
             {
-                if(GameManager.Inst.TurnPhase < 3)
-                {
-                    ClickToSpawnPieceServerRpc(hit.transform.GetComponent<Checker>().coord.Value);
-                }
-                if(GameManager.Inst.TurnPhase < 2)
-                {
-                    ClickMovablePieceServerRpc(hit.transform.GetComponent<Checker>().coord.Value);
-                    ClickToMovePieceServerRpc(hit.transform.GetComponent<Checker>().coord.Value);
-                }
+                // if(GameManager.Inst.TurnPhase < 3)
+                // {
+                //     ClickToSpawnPieceServerRpc(hit.transform.GetComponent<Checker>().coord.Value);
+                // }
+                ClickMovablePieceServerRpc(hit.transform.GetComponent<Checker>().coord.Value);
+                ClickToMovePieceServerRpc(hit.transform.GetComponent<Checker>().coord.Value);
             }
         }
     }
@@ -99,7 +91,7 @@ public class PlayerController : NetworkBehaviour
                 {
                     if(GameManager.Inst.boardPlayerState[item.X, item.Y] != PlayerEnum.EMPTY)
                     {
-                        GameManager.Inst.RemovePiece(new Vector2Int(item.X, item.Y));
+                        GameManager.Inst.RemovePiece(new Vector2Int(item.X, item.Y), false);
                     }
 
                     if(src != cor)
@@ -113,6 +105,7 @@ public class PlayerController : NetworkBehaviour
                     GameManager.Inst.curMovable = null;
 
                     GameManager.Inst.TurnPhase = 2;
+                    GameManager.Inst.PlayerActed.Value = true;
                 }
             }
         }
@@ -169,13 +162,13 @@ public class PlayerController : NetworkBehaviour
             {
                 if(GameManager.Inst.WHITE_Idx.Value > 15) return;
                 GameManager.Inst.SetPiece(new Vector2Int(cor.X, cor.Y), PlayerEnum.WHITE, GameManager.Inst.spawnList[GameManager.Inst.WHITE_Idx.Value++]);
-                spawnDone = true;
+                // spawnDone = true;
             }
             else
             {
                 if(GameManager.Inst.BLACK_Idx.Value > 15) return;
                 GameManager.Inst.SetPiece(new Vector2Int(cor.X, cor.Y), PlayerEnum.BLACK, GameManager.Inst.spawnList[GameManager.Inst.BLACK_Idx.Value++]);
-                spawnDone = true;
+                // spawnDone = true;
             }
 
             GameManager.Inst.PlayerActed.Value = true;
@@ -190,13 +183,13 @@ public class PlayerController : NetworkBehaviour
         GameManager.Inst.SwapTurn();
     }
 
-    private void LateUpdate() 
-    {
-        if(!IsServer) return;
-        if(spawnDone)
-        {
-            Board.Inst.ResetPaintedClientRpc();
-            spawnDone = false;
-        }    
-    }
+    // private void LateUpdate() 
+    // {
+    //     if(!IsServer) return;
+    //     if(spawnDone)
+    //     {
+    //         Board.Inst.ResetPaintedClientRpc();
+    //         spawnDone = false;
+    //     }    
+    // }
 }

@@ -9,6 +9,7 @@ public class GameManager : NetworkBehaviour
     public static GameManager Inst;
 
     public PlayerController localPlayer;
+    private bool spawnDone = false;
 
     public Checker[,] boardState = new Checker[4,4];
     public PlayerEnum[,] boardPlayerState;
@@ -39,8 +40,16 @@ public class GameManager : NetworkBehaviour
         set
         {
             turnPhase.Value = value;
-            UIManager.Inst.SetTurnPhaseIndicator();
+            // UIManager.Inst.SetTurnPhaseIndicator();
         }
+    }
+
+    public PlayerEnum LocalPlayerSide
+    {
+        get => IsServer
+        ? isServerBlack.Value ? PlayerEnum.BLACK : PlayerEnum.WHITE
+        : isServerBlack.Value ? PlayerEnum.WHITE : PlayerEnum.BLACK
+        ;
     }
 
     public bool IsMyTurn
@@ -57,11 +66,23 @@ public class GameManager : NetworkBehaviour
         Inst = this;
     }
 
+    private void LateUpdate() 
+    {
+        if(!IsServer) return;
+        if(spawnDone)
+        {
+            Board.Inst.ResetPaintedClientRpc();
+            spawnDone = false;
+        }    
+    }
+
     public override void OnNetworkSpawn()
     {
         turnPhase.OnValueChanged += OnTurnPhaseChanged;
         curPlayer.OnValueChanged += OnCurPlayerChanged;
+        PlayerActed.OnValueChanged += OnPlayerActedChanged;
         NetworkManager.OnClientConnectedCallback += InitializeGame;
+        
     }
 
     public void InitializeGame(ulong clientID)
@@ -78,7 +99,7 @@ public class GameManager : NetworkBehaviour
         boardPieceState = new PieceEnum[4,4];
 
         isServerBlack.Value = Random.Range(0,2) == 0;
-        UIManager.Inst.InitializeClientRpc();
+        UIManager.Inst.InitializeClientRpc(isServerBlack.Value ^ IsServer);
 
         for(int i=0; i<4; i++)
         {
@@ -92,13 +113,23 @@ public class GameManager : NetworkBehaviour
 
     public void OnTurnPhaseChanged(int past, int cur)
     {
-        UIManager.Inst.SetTurnPhaseIndicator();
+        // UIManager.Inst.SetTurnPhaseIndicator();
     }
 
     public void OnCurPlayerChanged(PlayerEnum past, PlayerEnum cur)
     {
         UIManager.Inst.UpdateTurnEndButton();
         Board.Inst.ResetPainted();
+    }
+
+    public void OnPlayerActedChanged(bool pre, bool cur)
+    {
+        // UIManager.Inst.SetTurnEndButton(pre, cur);
+        if(IsServer && cur)
+        {
+            SpawnAtRndPoint();
+            SwapTurn();
+        }
     }
 
     public void SwapTurn()
@@ -168,12 +199,12 @@ public class GameManager : NetworkBehaviour
     }
 
     //Should only call from Server-Side
-    public void RemovePiece(Vector2Int cor)
+    public void RemovePiece(Vector2Int cor, bool isMove = true)
     {
-        if(boardPieceState[cor.x, cor.y] == PieceEnum.KING)
+        if(boardPieceState[cor.x, cor.y] == PieceEnum.KING && !isMove)
         {
-            EndGameClientRpc(boardPlayerState[cor.x, cor.y]);
-        }   
+            EndGameClientRpc(boardPlayerState[cor.x, cor.y] == PlayerEnum.WHITE ? PlayerEnum.BLACK : PlayerEnum.WHITE);
+        }
 
         boardState[cor.x, cor.y].player.Value = PlayerEnum.EMPTY;
         boardState[cor.x, cor.y].piece.Value = PieceEnum.NONE;  
@@ -196,14 +227,69 @@ public class GameManager : NetworkBehaviour
         UIManager.Inst.SetResultPanel(playerEnum);
     }
 
-    // [ClientRpc]
-    // public void MovePieceClientRpc(int x, int y, int w, int z) => MovePieceClientRpc(new Coordinate(x,y), new Coordinate(w,z));
-    // [ClientRpc]
-    // public void MovePieceClientRpc(Coordinate src, Coordinate dest)
-    // {
-    //     if(src == dest) return;
-    //     // Debug.Log(src.ToString() + " => " + dest.ToString());
-    //     SetPieceClientRpc(dest, boardPlayerState[src.X, src.Y], boardPieceState[src.X, src.Y]);
-    //     RemovePieceClientRpc(src);
-    // }
+    public void SpawnAtRndPoint()
+    {
+        List<Coordinate> spawnableList = new();
+        List<Coordinate> unsafeCoordinateList = new();
+
+        for(int i=0; i<4; i++)
+        for(int j=0; j<4; j++)
+        {
+            if(boardPlayerState[i,j] == PlayerEnum.EMPTY) spawnableList.Add(new Coordinate(i,j));
+        }
+
+        for(int i=0; i<4; i++)
+        for(int j=0; j<4; j++)
+        {
+            if(boardPlayerState[i,j] != PlayerEnum.EMPTY && boardPlayerState[i,j] != curPlayer.Value)
+            {
+                foreach(var item in Piece.ReachableCoordinate(new Coordinate(i,j), boardPlayerState[i,j], boardPieceState[i,j], true))
+                {
+                    if(spawnableList.Contains(item))
+                    {
+                        spawnableList.Remove(item);
+                        unsafeCoordinateList.Add(item);
+                    }
+                }
+            }
+        }
+
+        int rnd;
+        if(spawnableList.Count < 1)
+        {
+            if(unsafeCoordinateList.Count < 1) return;
+            rnd = Random.Range(0, unsafeCoordinateList.Count);
+            // Debug.Log(unsafeCoordinateList.Count + ", Spawn at unsafe coord of" + unsafeCoordinateList[rnd].ToString());
+            SpawnPieceServerRpc(unsafeCoordinateList[rnd]);
+        }
+        else
+        {
+            rnd = Random.Range(0, spawnableList.Count);
+            // Debug.Log(spawnableList.Count + ", Spawn at " + spawnableList[rnd].ToString());
+            SpawnPieceServerRpc(spawnableList[rnd]);
+        }
+        
+    }
+
+    [ServerRpc]
+    public void SpawnPieceServerRpc(Coordinate cor)
+    {
+        //Piece spawn procedure
+        if(boardPlayerState[cor.X, cor.Y] == PlayerEnum.EMPTY)
+        {
+            if(curPlayer.Value == PlayerEnum.WHITE)
+            {
+                if(WHITE_Idx.Value > 15) return;
+                SetPiece(new Vector2Int(cor.X, cor.Y), PlayerEnum.WHITE, spawnList[WHITE_Idx.Value++]);
+                spawnDone = true;
+            }
+            else
+            {
+                if(BLACK_Idx.Value > 15) return;
+                SetPiece(new Vector2Int(cor.X, cor.Y), PlayerEnum.BLACK, spawnList[BLACK_Idx.Value++]);
+                spawnDone = true;
+            }
+            UIManager.Inst.UpdateNextPieceClientRpc();
+        }
+    }
 }

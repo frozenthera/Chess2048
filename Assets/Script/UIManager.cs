@@ -13,57 +13,38 @@ public class UIManager : NetworkBehaviour
         Inst = this;
     }
 
-    [SerializeField] Button turnEndButton;
-    [SerializeField] public TextMeshProUGUI turnPlayerInfoText;
+    // [SerializeField] Button turnEndButton;
     [SerializeField] List<Sprite> whiteSpriteList = new();
     [SerializeField] List<Sprite> blackSpriteList = new();
 
     [SerializeField] Image whiteNextSprite;
     [SerializeField] Image blackNextSprite;
 
+    [SerializeField] public TextMeshProUGUI turnPlayerInfoText;
     [SerializeField] TextMeshProUGUI winText;
     [SerializeField] Button gameRestartButton;
     [SerializeField] RectTransform ResultPanel;
 
-    [SerializeField] TextMeshProUGUI slideText;
-    [SerializeField] TextMeshProUGUI moveText;
-    [SerializeField] TextMeshProUGUI spawnText;
+    // [SerializeField] TextMeshProUGUI slideText;
+    // [SerializeField] TextMeshProUGUI moveText;
+    // [SerializeField] TextMeshProUGUI spawnText;
 
     private void Start()
     {
         UpdateTurnEndButton();
-        turnEndButton.onClick.AddListener(()=>{
-            GameManager.Inst.localPlayer.SwapTurnServerRpc();
-        });
-
         gameRestartButton.onClick.AddListener(()=>{
             // GameManager.Inst.ResetGame();
             // ResultPanel.gameObject.SetActive(false);
         });
-
-        GameManager.Inst.PlayerActed.OnValueChanged += SetTurnEndButton;
     }
 
-    public void SetTurnEndButton(bool previous, bool current)
-    {
-        Image img = turnEndButton.GetComponent<Image>();
-        if(current)
-        {
-            img.color = Color.green;
-        }
-        else
-        {
-            img.color = Color.white;
-        }
-    }
-
-    public void SetTurnPhaseIndicator()
-    {
-        int num = GameManager.Inst.TurnPhase;
-        slideText.color = num < 1 ? Color.white : Color.gray; 
-        moveText.color  = num < 2 ? Color.white : Color.gray;
-        spawnText.color = num < 3 ? Color.white : Color.gray;
-    }
+    // public void SetTurnPhaseIndicator()
+    // {
+    //     int num = GameManager.Inst.TurnPhase;
+    //     slideText.color = num < 1 ? Color.white : Color.gray; 
+    //     moveText.color  = num < 2 ? Color.white : Color.gray;
+    //     spawnText.color = num < 3 ? Color.white : Color.gray;
+    // }
 
     [ClientRpc]
     public void UpdateNextPieceClientRpc()
@@ -88,15 +69,15 @@ public class UIManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void InitializeClientRpc()
+    public void InitializeClientRpc(bool value)
     {
-        UpdateTurnEndButton();
+        UpdateTurnEndButton(value);
     }
 
     public void UpdateTurnEndButton() => UpdateTurnEndButton(GameManager.Inst.IsMyTurn);
     public void UpdateTurnEndButton(bool value)
     {
-        turnPlayerInfoText.text = value ? "My Turn!" : "Waiting for Opponent..." ;
+        turnPlayerInfoText.text = GameManager.Inst.LocalPlayerSide.ToString() + "\n" + (value ? "My Turn!" : "Waiting for Opponent...");
     }
 
     public void SetResultPanel(PlayerEnum winner)
