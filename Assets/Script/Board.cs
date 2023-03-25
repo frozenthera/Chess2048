@@ -12,7 +12,7 @@ public class Board : NetworkBehaviour
         Inst = this;
     }
 
-    public void Initialize()
+    public IEnumerator Initialize()
     {
         for(int i=0; i<4; i++) 
         {
@@ -31,6 +31,9 @@ public class Board : NetworkBehaviour
             }
         }
         transform.position = new Vector3(-2f, -3f, 0);
+
+        yield return null;
+        GameManager.Inst.PlayerActed.Value = true;
     }
 
     public override void OnNetworkSpawn()
@@ -45,8 +48,6 @@ public class Board : NetworkBehaviour
     [ServerRpc]
     public void SlideServerRpc(Direction dir)
     {
-        GameManager.Inst.TurnPhase = 1;
-
         int _dx = dx[(int)dir];
         int _dy = dy[(int)dir];
 

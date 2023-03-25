@@ -5,34 +5,38 @@ using Unity.Netcode;
 
 public class Piece
 {
-    public static List<Coordinate> ReachableCoordinate(Coordinate curCoord, PlayerEnum player, PieceEnum piece, bool considerPawnCheck = false)
+    public static List<Coordinate> ReachableCoordinate(Coordinate curCoord, PlayerEnum player, PieceEnum piece, bool isAttack = false)
     {
         List<Coordinate> res = new();
-        List<Coordinate> diff = GetDiff(piece);
+        List<Coordinate> diff = GetDiff(piece, isAttack);
         for(int i=0; i< diff.Count; i++)
         {   
             for(int j=1; j< GetRange(piece)+1; j++)
             {
-                Coordinate temp = curCoord + diff[i]*j;
-                if(temp.X < 0 || temp.X > 3 || temp.Y < 0 || temp.Y > 3) continue;
+                Coordinate dest = curCoord + diff[i]*j;
+                if(dest.X < 0 || dest.X > 3 || dest.Y < 0 || dest.Y > 3) continue;
 
-                if(GameManager.Inst.isTherePieceWithOppo(temp, player))
+                if(piece == PieceEnum.PAWN)
                 {
-                    res.Add(temp);
+                    if(isAttack && GameManager.Inst.isTherePieceWithOppo(dest, player))
+                    {    
+                        res.Add(dest);
+                        break;
+                    }
+                    else if(!isAttack && !GameManager.Inst.isTherePiece(dest))
+                    {
+                        res.Add(dest);
+                        break;
+                    }
+                }
+                else if(GameManager.Inst.isTherePieceWithOppo(dest, player))
+                {
+                    res.Add(dest);
                     break;
                 }
-                else if(piece == PieceEnum.PAWN && !GameManager.Inst.isTherePiece(temp) && considerPawnCheck)
+                else if(!GameManager.Inst.isTherePiece(dest))
                 {
-                    res.Add(temp);
-                    break;
-                }
-                else if(piece == PieceEnum.PAWN && !GameManager.Inst.isTherePiece(temp))
-                {
-                    break;
-                }
-                else if(!GameManager.Inst.isTherePiece(temp))
-                {
-                    res.Add(temp);
+                    res.Add(dest);
                 }
                 else
                 {
@@ -45,18 +49,31 @@ public class Piece
 
     public void OnRemoved(PlayerEnum playerEnum){}
 
-    private static List<Coordinate> GetDiff(PieceEnum piece)
+    private static List<Coordinate> GetDiff(PieceEnum piece, bool isAttack = false)
     {   
         switch(piece)
         {
             case PieceEnum.PAWN:
-                return new List<Coordinate>()
+                if(!isAttack)
                 {
-                    new Coordinate(1,1),
-                    new Coordinate(1,-1),
-                    new Coordinate(-1,-1),
-                    new Coordinate(-1,1)
-                };
+                    return new List<Coordinate>()
+                    {
+                        new Coordinate(0,1),
+                        new Coordinate(1,0),
+                        new Coordinate(0,-1),
+                        new Coordinate(-1,0)
+                    };
+                }
+                else
+                {
+                    return new List<Coordinate>()
+                    {
+                        new Coordinate(1,1),
+                        new Coordinate(1,-1),
+                        new Coordinate(-1,-1),
+                        new Coordinate(-1,1)
+                    };
+                }
 
             case PieceEnum.ROOK:
                 return new List<Coordinate>()

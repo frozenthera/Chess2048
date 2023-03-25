@@ -14,8 +14,7 @@ public class PlayerController : NetworkBehaviour
     private void Update()
     {
         if (!IsLocalPlayer) return;
-        if(GameManager.Inst.isGameOver) return;
-        if(!GameManager.Inst.IsMyTurn) return;
+        if(GameManager.Inst.isGameOver || !GameManager.Inst.IsMyTurn) return;
 
         if(Input.GetKeyDown(KeyCode.E))
         {
@@ -104,7 +103,6 @@ public class PlayerController : NetworkBehaviour
                     GameManager.Inst.curSelected = new Coordinate(-1, -1);
                     GameManager.Inst.curMovable = null;
 
-                    GameManager.Inst.TurnPhase = 2;
                     GameManager.Inst.PlayerActed.Value = true;
                 }
             }
@@ -131,6 +129,7 @@ public class PlayerController : NetworkBehaviour
         //자신의 기물을 선택하였을 때 이동가능한 부분 표시
         GameManager.Inst.curSelected = cor;
         GameManager.Inst.curMovable = Piece.ReachableCoordinate(cor, GameManager.Inst.boardPlayerState[cor.X, cor.Y], GameManager.Inst.boardPieceState[cor.X, cor.Y]);
+        if(GameManager.Inst.GetPieceState(cor) == PieceEnum.PAWN) GameManager.Inst.curMovable.AddRange(Piece.ReachableCoordinate(cor, GameManager.Inst.boardPlayerState[cor.X, cor.Y], GameManager.Inst.boardPieceState[cor.X, cor.Y], true));
         if(GameManager.Inst.curMovable.Count == 0)
         {
             GameManager.Inst.curSelected = Coordinate.none;
@@ -150,46 +149,8 @@ public class PlayerController : NetworkBehaviour
     }
 
     [ServerRpc]
-    public void ClickToSpawnPieceServerRpc(Coordinate cor)
-    {
-        if(GameManager.Inst.curSelected != Coordinate.none) return;
-
-        Checker dest = GameManager.Inst.boardState[cor.X, cor.Y];
-        //Piece spawn procedure
-        if(GameManager.Inst.boardPlayerState[cor.X, cor.Y] == PlayerEnum.EMPTY)
-        {
-            if(GameManager.Inst.curPlayer.Value == PlayerEnum.WHITE)
-            {
-                if(GameManager.Inst.WHITE_Idx.Value > 15) return;
-                GameManager.Inst.SetPiece(new Vector2Int(cor.X, cor.Y), PlayerEnum.WHITE, GameManager.Inst.spawnList[GameManager.Inst.WHITE_Idx.Value++]);
-                // spawnDone = true;
-            }
-            else
-            {
-                if(GameManager.Inst.BLACK_Idx.Value > 15) return;
-                GameManager.Inst.SetPiece(new Vector2Int(cor.X, cor.Y), PlayerEnum.BLACK, GameManager.Inst.spawnList[GameManager.Inst.BLACK_Idx.Value++]);
-                // spawnDone = true;
-            }
-
-            GameManager.Inst.PlayerActed.Value = true;
-            GameManager.Inst.TurnPhase = 3;
-            UIManager.Inst.UpdateNextPieceClientRpc();
-        }
-    }
-
-    [ServerRpc]
     public void SwapTurnServerRpc()
     {
         GameManager.Inst.SwapTurn();
     }
-
-    // private void LateUpdate() 
-    // {
-    //     if(!IsServer) return;
-    //     if(spawnDone)
-    //     {
-    //         Board.Inst.ResetPaintedClientRpc();
-    //         spawnDone = false;
-    //     }    
-    // }
 }

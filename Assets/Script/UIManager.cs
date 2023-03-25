@@ -25,27 +25,6 @@ public class UIManager : NetworkBehaviour
     [SerializeField] Button gameRestartButton;
     [SerializeField] RectTransform ResultPanel;
 
-    // [SerializeField] TextMeshProUGUI slideText;
-    // [SerializeField] TextMeshProUGUI moveText;
-    // [SerializeField] TextMeshProUGUI spawnText;
-
-    private void Start()
-    {
-        UpdateTurnEndButton();
-        gameRestartButton.onClick.AddListener(()=>{
-            // GameManager.Inst.ResetGame();
-            // ResultPanel.gameObject.SetActive(false);
-        });
-    }
-
-    // public void SetTurnPhaseIndicator()
-    // {
-    //     int num = GameManager.Inst.TurnPhase;
-    //     slideText.color = num < 1 ? Color.white : Color.gray; 
-    //     moveText.color  = num < 2 ? Color.white : Color.gray;
-    //     spawnText.color = num < 3 ? Color.white : Color.gray;
-    // }
-
     [ClientRpc]
     public void UpdateNextPieceClientRpc()
     {
@@ -69,15 +48,20 @@ public class UIManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void InitializeClientRpc(bool value)
+    public void InitializeClientRpc(bool isServerBlack)
     {
-        UpdateTurnEndButton(value);
+        PlayerEnum player = isServerBlack ^ IsServer ? PlayerEnum.WHITE : PlayerEnum.BLACK;
+        UpdateTurnEndButton(player, isServerBlack ^ IsServer);
     }
 
     public void UpdateTurnEndButton() => UpdateTurnEndButton(GameManager.Inst.IsMyTurn);
-    public void UpdateTurnEndButton(bool value)
+    public void UpdateTurnEndButton(bool isMyTurn)
     {
-        turnPlayerInfoText.text = GameManager.Inst.LocalPlayerSide.ToString() + "\n" + (value ? "My Turn!" : "Waiting for Opponent...");
+        turnPlayerInfoText.text = GameManager.Inst.LocalPlayerSide.ToString() + "\n" + (isMyTurn ? "My Turn!" : "Waiting for Opponent...");
+    }
+    public void UpdateTurnEndButton(PlayerEnum playerEnum, bool isMyTurn)
+    {
+        turnPlayerInfoText.text = playerEnum.ToString() + "\n" + (isMyTurn ? "My Turn!" : "Waiting for Opponent...");
     }
 
     public void SetResultPanel(PlayerEnum winner)

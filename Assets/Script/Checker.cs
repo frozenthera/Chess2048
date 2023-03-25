@@ -20,14 +20,6 @@ public class Checker : NetworkBehaviour
         Initialize();
     }
 
-    public void LateUpdate()
-    {
-        if(IsServer) return;
-        if(!isChanged) return;
-        PaintPiece();
-        isChanged = false;
-    }
-
     public void Initialize()
     {        
         piece.OnValueChanged += PaintPiece;
@@ -84,4 +76,13 @@ public class Checker : NetworkBehaviour
             isChanged = true;    
         }
     }
+
+    public void LateUpdate()
+    {
+        if(IsServer) return;
+        if(!isChanged) return;
+        PaintPiece();
+        isChanged = false;
+    }
+
 }

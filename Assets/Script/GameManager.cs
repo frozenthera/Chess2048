@@ -29,21 +29,6 @@ public class GameManager : NetworkBehaviour
     public NetworkVariable<bool> isServerBlack = new NetworkVariable<bool>(true);
     public NetworkVariable<PlayerEnum> curPlayer = new NetworkVariable<PlayerEnum>(PlayerEnum.BLACK);
 
-    /// <summary>
-    /// False when curPlayer is at Move Phase(Slide or Piece move)<br/>
-    /// True when curPlayer is at Spawn Phase
-    /// </summary>
-    private NetworkVariable<int> turnPhase = new NetworkVariable<int>(0);
-    public int TurnPhase
-    {
-        get => turnPhase.Value;
-        set
-        {
-            turnPhase.Value = value;
-            // UIManager.Inst.SetTurnPhaseIndicator();
-        }
-    }
-
     public PlayerEnum LocalPlayerSide
     {
         get => IsServer
@@ -78,28 +63,34 @@ public class GameManager : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        turnPhase.OnValueChanged += OnTurnPhaseChanged;
         curPlayer.OnValueChanged += OnCurPlayerChanged;
         PlayerActed.OnValueChanged += OnPlayerActedChanged;
         NetworkManager.OnClientConnectedCallback += InitializeGame;
-        
     }
 
     public void InitializeGame(ulong clientID)
     {
         if(!IsServer) return;
-        GameManager.Inst.Initialize();
-        Board.Inst.Initialize();
+        StartCoroutine(_InitializeGame());
     }
 
-    public void Initialize()
+    public IEnumerator _InitializeGame()
+    {
+        yield return StartCoroutine(Initialize());
+        yield return StartCoroutine(Board.Inst.Initialize());
+
+    }
+
+    public IEnumerator Initialize()
     {
         boardState = new Checker[4,4];
         boardPlayerState = new PlayerEnum[4,4];
         boardPieceState = new PieceEnum[4,4];
 
-        isServerBlack.Value = Random.Range(0,2) == 0;
-        UIManager.Inst.InitializeClientRpc(isServerBlack.Value ^ IsServer);
+        bool temp = Random.Range(0,2) == 0;
+        isServerBlack.Value = temp;
+        yield return null;
+        UIManager.Inst.InitializeClientRpc(temp);
 
         for(int i=0; i<4; i++)
         {
@@ -111,11 +102,6 @@ public class GameManager : NetworkBehaviour
         }
     }
 
-    public void OnTurnPhaseChanged(int past, int cur)
-    {
-        // UIManager.Inst.SetTurnPhaseIndicator();
-    }
-
     public void OnCurPlayerChanged(PlayerEnum past, PlayerEnum cur)
     {
         UIManager.Inst.UpdateTurnEndButton();
@@ -124,7 +110,6 @@ public class GameManager : NetworkBehaviour
 
     public void OnPlayerActedChanged(bool pre, bool cur)
     {
-        // UIManager.Inst.SetTurnEndButton(pre, cur);
         if(IsServer && cur)
         {
             SpawnAtRndPoint();
@@ -139,7 +124,6 @@ public class GameManager : NetworkBehaviour
         else curPlayer.Value = PlayerEnum.WHITE;
 
         PlayerActed.Value = false;
-        turnPhase.Value = 0;
         curSelected = Coordinate.none;
     }
 
@@ -289,7 +273,13 @@ public class GameManager : NetworkBehaviour
                 SetPiece(new Vector2Int(cor.X, cor.Y), PlayerEnum.BLACK, spawnList[BLACK_Idx.Value++]);
                 spawnDone = true;
             }
-            UIManager.Inst.UpdateNextPieceClientRpc();
+            StartCoroutine(EUpdateNextPiece());    
         }
+    }
+
+    public IEnumerator EUpdateNextPiece()
+    {
+        yield return null;
+        UIManager.Inst.UpdateNextPieceClientRpc();
     }
 }
