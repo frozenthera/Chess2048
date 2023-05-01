@@ -194,6 +194,8 @@ public class GameManager : NetworkBehaviour
         boardState[cor.x, cor.y].piece.Value = PieceEnum.NONE;  
         boardPieceState[cor.x, cor.y] = PieceEnum.NONE;
         boardPlayerState[cor.x, cor.y] = PlayerEnum.EMPTY;
+
+        
     }
 
     public void SetPiece(Vector2Int cor, PlayerEnum player, PieceEnum piece)

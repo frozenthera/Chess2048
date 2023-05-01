@@ -85,4 +85,28 @@ public class Checker : NetworkBehaviour
         isChanged = false;
     }
 
+    public IEnumerator EPaintPiece()
+    {
+        if(player.Value == PlayerEnum.EMPTY)
+        {
+            pieceRenderer.sprite = null;
+        }
+        else if(player.Value == PlayerEnum.WHITE)
+        {
+            pieceRenderer.sprite = whitePieceSprite[(int)piece.Value];
+        }
+        else
+        {
+            pieceRenderer.sprite = blackPieceSprite[(int)piece.Value]; 
+        }
+
+        float popupTime = 1f, curTime = 0f;
+        while(curTime < popupTime)
+        {
+            yield return null;
+            curTime += Time.deltaTime;
+            pieceRenderer.transform.localScale = Vector3.one * (curTime / popupTime);
+        }
+    }
+
 }
